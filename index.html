@@ -1,807 +1,802 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FUMISCOR - Gestión de Tareas (Cloud & Privado)</title>
+    <title>Plataforma SAO | Gestión Estratégica Cloud</title>
     
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet" id="swal-theme">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <style>
+        /* MODO OSCURO (Por defecto) */
         :root {
-            --bg-page: #0f172a; --bg-card: #1e293b; --text-main: #f8fafc;
-            --accent: #6366f1; --danger: #ef4444; --success: #10b981;
-            --info: #3b82f6; --warning: #f97316; --yellow: #eab308;
-            --prioridad-6: #451a1a; --borde-6: #ef4444;
-            --prioridad-5: #452411; --borde-5: #f97316;
-            --prioridad-4: #423508; --borde-4: #eab308;
-            --prioridad-3: #1e293b; --borde-3: #3b82f6;
-            --prioridad-2: #1e293b; --borde-2: #10b981;
+            --bg-base: #0f172a; 
+            --bg-surface: #1e293b; 
+            --bg-hover: #334155;
+            --accent: #ef4444; 
+            --n1-color: #3b82f6; 
+            --n2-color: #f59e0b; 
+            --n3-color: #10b981; 
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg-page); color: var(--text-main); overflow-x: hidden; }
-        .app-padding { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+        /* MODO CLARO (Nueva optimización) */
+        [data-bs-theme="light"] {
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-hover: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #cbd5e1;
+        }
 
-        /* LOBBY */
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-page); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .login-box { background: var(--bg-card); padding: 3rem; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid #334155; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; position: relative;}
-        .login-box img { height: 60px; object-fit: contain; margin-bottom: 10px; align-self: center; }
-        .login-box h2 { text-align: center; color: var(--text-main); margin-bottom: 0.5rem; font-size: 1.5rem; }
-        .login-box label { font-size: 0.8rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: -15px; }
-        .login-box select, .login-box input { background: #334155; border: 1px solid #475569; color: white; padding: 15px; border-radius: 8px; outline: none; font-size: 1rem; color-scheme: dark; }
-        .login-box select:focus, .login-box input:focus { border-color: var(--accent); background: #1e293b; }
-        .btn-login { background: var(--accent); color: white; padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 1.1rem; transition: 0.2s; margin-top: 10px; }
-        .btn-login:hover { background: #4f46e5; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4); }
-        .login-view { display: flex; flex-direction: column; gap: 20px; animation: fadeIn 0.3s ease; }
-        .btn-link { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; padding: 5px;}
-        .btn-link:hover { color: var(--text-main); }
-        .btn-link-accent { color: var(--accent); }
-        .btn-link-accent:hover { color: #818cf8; }
+        body { background-color: var(--bg-base); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
         
-        /* HERRAMIENTAS EXTRAS LOBBY */
-        .footer-tools { display: flex; justify-content: space-between; margin-top: 5px; border-top: 1px solid #334155; padding-top: 15px; }
-        .btn-tool { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: 0.2s; }
-        .btn-tool:hover { color: var(--text-main); }
-        .btn-tool.del:hover { color: var(--danger); }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-base); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: var(--bg-surface); padding: 40px; border-radius: 12px; text-align: center; max-width: 450px; width: 90%; border-top: 5px solid var(--n1-color); box-shadow: 0 10px 40px rgba(0,0,0,0.3); border: 1px solid var(--border-color);}
+        
+        .app-container { display: flex; height: 100vh; width: 100%; display: none; }
+        .sidebar { width: 280px; background: var(--bg-surface); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); z-index: 10;}
+        .logo-box { padding: 20px; text-align: center; border-bottom: 1px solid var(--border-color); }
+        .logo-box img { max-width: 75%; border-radius: 4px; background: white; padding: 5px;}
+        
+        .nav-item { padding: 15px 20px; cursor: pointer; color: var(--text-muted); font-weight: 500; border-left: 4px solid transparent; transition: 0.2s; position: relative; text-decoration: none; display: block;}
+        .nav-item:hover { background: var(--bg-hover); color: var(--text-main); }
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); border-left-color: var(--n1-color); color: var(--n1-color); font-weight: bold;}
+        .nav-external { color: #10b981 !important; border-top: 1px solid var(--border-color); margin-top: 10px; background: rgba(16, 185, 129, 0.05); }
+        .nav-external:hover { background: rgba(16, 185, 129, 0.15) !important; }
+        
+        .main-content { flex: 1; overflow-y: auto; padding: 30px; background-color: var(--bg-base); scroll-behavior: smooth;}
+        .section { display: none; animation: fadeIn 0.4s; }
+        .section.active { display: block; }
+        
+        .badge-notify { position: absolute; top: 12px; right: 20px; background: var(--accent); color: white; font-size: 0.7rem; padding: 3px 6px; border-radius: 10px; font-weight: bold; }
+        
+        .card { background-color: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); }
+        .card-header { background-color: rgba(0,0,0,0.05); border-bottom: 1px solid var(--border-color); }
+        input.form-control, select.form-select, textarea.form-control { background-color: var(--bg-base); border-color: var(--border-color); color: var(--text-main); }
+        input.form-control:focus, select.form-select:focus, textarea.form-control:focus { background-color: var(--bg-surface); border-color: var(--n1-color); box-shadow: none; color: var(--text-main);}
+        
+        .table-matriz { width: 100%; font-size: 0.85rem; border-collapse: separate; border-spacing: 0; background: var(--bg-surface); }
+        .table-matriz th { background: var(--bg-hover); color: var(--text-main); text-align: center; padding: 12px; position: sticky; top: 0; z-index: 5; border: 1px solid var(--border-color);}
+        .table-matriz td { padding: 10px; border: 1px solid var(--border-color); vertical-align: middle; color: var(--text-main); }
+        
+        .row-n1 { background-color: rgba(59, 130, 246, 0.1); }
+        .row-n2 { background-color: rgba(245, 158, 11, 0.05); }
+        .row-n3 { background-color: rgba(16, 185, 129, 0.05); }
+        .badge-n1 { background-color: var(--n1-color); color: white; }
+        .badge-n2 { background-color: var(--n2-color); color: black; }
+        .badge-n3 { background-color: var(--n3-color); color: white; }
+        .area-tag { display: inline-block; background: var(--bg-hover); border: 1px solid var(--border-color); font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; margin: 2px; color: var(--text-main); }
+        
+        .roadmap-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; min-height: 70vh; align-items: flex-start; cursor: grab; user-select: none; scroll-behavior: auto; }
+        .roadmap-column { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; min-width: 340px; width: 340px; display: flex; flex-direction: column; }
+        .roadmap-header { padding: 15px; border-bottom: 2px solid var(--border-color); font-weight: bold; position: sticky; top: 0; background: var(--bg-surface); border-radius: 8px 8px 0 0; display: flex; justify-content: space-between;}
+        .roadmap-body { padding: 15px; display: grid; gap: 15px; }
+        .roadmap-tier { display: flex; flex-direction: column; gap: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 15px; }
+        .tier-label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; font-weight: bold; }
+        .roadmap-card { background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; border-left: 4px solid; color: var(--text-main); }
+        .roadmap-card.r-n1 { border-left-color: var(--n1-color); }
+        .roadmap-card.r-n2 { border-left-color: var(--n2-color); }
+        .roadmap-card.r-n3 { border-left-color: var(--n3-color); }
 
-        /* HEADER Y BOTONES */
-        .header-container { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 15px; }
-        .header-top { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .logo-box { background: white; padding: 8px 15px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-        .logo-img { height: 35px; object-fit: contain; }
-        h1 { font-size: 2.2rem; display: flex; align-items: center; gap: 10px; margin: 0; font-weight: 700; transition: 0.3s; }
-        .week-indicator { background: #1e1b4b; color: #818cf8; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 1rem; display: inline-block; }
-        .view-toggle { display: flex; background: rgba(30, 41, 59, 0.8); border-radius: 8px; padding: 4px; border: 1px solid #334155; flex-wrap: wrap; gap: 5px; align-items: center;}
-        .mode-btn { background: transparent; color: #94a3b8; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
-        .mode-btn:hover { color: white; }
-        .mode-btn.active { background: var(--accent); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .mode-btn.active-personal { background: #10b981; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .mode-btn.active-timeline { background: #f59e0b; color: #1e293b; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .btn-logout { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-left: 10px; }
-        .btn-logout:hover { background: var(--danger); color: white; }
-        .actions-bar { display: flex; gap: 10px; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;}
-        .btn { padding: 12px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px;}
-        .btn-add { background: var(--accent); color: white; min-width: 120px; }
-        .btn-add:hover { opacity: 0.9; }
-        .btn-export { background: var(--success); color: white; }
-        .btn-import { background: #3b82f6; color: white; cursor: pointer; }
-        .btn-clear { background: var(--danger); color: white; }
-        .btn-action-top { background: #334155; color: #f1f5f9; }
-        .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; }
-        .file-upload-wrapper input[type="file"] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; }
+        .ai-panel { background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(15,23,42,0) 100%); border-left: 4px solid var(--n1-color); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* DASHBOARD & ANALYTICS */
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .metric-card { background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border-left: 6px solid #475569; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
-        .metric-card.danger { border-left-color: var(--danger); }
-        .metric-card.info { border-left-color: var(--info); }
-        .metric-card.success { border-left-color: var(--success); }
-        .metric-card.accent { border-left-color: var(--accent); }
-        .metric-header { display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; }
-        .metric-value { font-size: 2.5rem; font-weight: 800; }
-        .analytics-section { background: var(--bg-card); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #334155; display: none; animation: fadeIn 0.3s ease; }
-        .analytics-title { color: #f8fafc; margin-bottom: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #334155; padding-bottom: 10px;}
-        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-        .chart-card { background: #0f172a; padding: 1.5rem; border-radius: 12px; border: 1px solid #334155; display: flex; flex-direction: column; align-items: center;}
-        .chart-card h3 { font-size: 1rem; color: #94a3b8; margin-bottom: 1.5rem; text-transform: uppercase; text-align: center; letter-spacing: 1px;}
-        .bar-chart { display: flex; align-items: flex-end; justify-content: space-around; width: 100%; height: 200px; gap: 10px; padding-bottom: 10px; border-bottom: 2px solid #334155; margin-top: auto;}
-        .bar-col { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; justify-content: flex-end; height: 100%;}
-        .bar { width: 100%; max-width: 40px; background: var(--accent); border-radius: 4px 4px 0 0; position: relative; transition: height 0.5s ease-out; min-height: 5px; display:flex; justify-content:center;}
-        .bar-val { position: absolute; top: -22px; font-size: 0.85rem; font-weight: bold; color: white;}
-        .bar-label { font-size: 0.75rem; color: #94a3b8; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;}
-        .pie-chart-wrapper { display: flex; gap: 2rem; align-items: center; width: 100%; justify-content: center; flex-wrap: wrap; margin-top: auto;}
-        .pie-chart { width: 160px; height: 160px; border-radius: 50%; border: 4px solid #1e293b; box-shadow: 0 0 15px rgba(0,0,0,0.3); transition: background 0.5s ease;}
-        .chart-legend { display: flex; flex-direction: column; gap: 8px; }
-        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #f8fafc;}
-        .legend-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
-
-        /* FORMULARIO */
-        .task-form { background: var(--bg-card); padding: 1.5rem; border-radius: 12px; display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; align-items: flex-end; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 130px; }
-        .form-group.desc { flex: 2; min-width: 200px; }
-        label { font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
-        input[type="text"], input[type="date"], select { background: #334155; border: 1px solid #475569; color: white; padding: 12px; border-radius: 6px; outline: none; font-size: 0.95rem; color-scheme: dark; }
-        input[type="text"]:focus, select:focus { border-color: var(--accent); background: #1e293b; }
-
-        /* FILTROS */
-        .filters-container { background: rgba(30, 41, 59, 0.5); padding: 15px; border-radius: 12px; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 15px; border: 1px solid #334155; }
-        .filter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; width: 100%; }
-        .filter-divider { width: 100%; height: 1px; background: #334155; border: none; margin: 0; }
-        .search-bar { flex: 1; min-width: 150px; }
-        .filter-btn { background: none; border: 1px solid #475569; color: #94a3b8; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: 0.2s;}
-        .filter-btn.state-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .filter-btn.state-btn.active-success { background: var(--success); color: white; border-color: var(--success); }
-        .filter-btn.state-btn.active-danger { background: var(--danger); color: white; border-color: var(--danger); }
-        .filter-btn.state-btn.active-info { background: var(--info); color: white; border-color: var(--info); }
-        .toggle-col-btn { background: var(--bg-card); border: 1px solid var(--accent); color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
-        .toggle-col-btn.off { background: transparent; border-color: #475569; color: #64748b; opacity: 0.6; text-decoration: line-through; }
-
-        /* TABLEROS Y TAREAS */
-        .boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; transition: 0.3s ease; }
-        .board { background: rgba(30, 41, 59, 0.5); border: 2px dashed #334155; border-radius: 12px; padding: 1rem; min-height: 300px; transition: 0.2s; display: block; }
-        .board-header { border-bottom: 1px solid #334155; margin-bottom: 1rem; padding-bottom: 10px; color: #94a3b8; font-size: 0.9rem; text-align: center; font-weight: bold;}
-        .task-list { display: flex; flex-direction: column; gap: 12px; min-height: 50px; }
-        .task-item { background: var(--bg-card); padding: 15px; border-radius: 8px; border-left: 5px solid #475569; position: relative; cursor: grab; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: border-color 0.2s;}
-        .task-item:active { cursor: grabbing; }
-        .task-item b { display: block; margin-bottom: 8px; font-size: 1rem; padding-right: 60px; }
-        .task-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;}
-        .badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; background: rgba(0,0,0,0.3); font-weight: bold; color: white; }
-        .badge-user { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3);}
-        .badge-source-eq { background: #334155; border: 1px solid #475569; color: #cbd5e1; }
-        .badge-source-pe { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; }
-        .badge-delay { background: var(--danger); color: white; animation: pulse 2s infinite; }
-        .badge-today { background: var(--warning); color: white; box-shadow: 0 0 8px rgba(249, 115, 22, 0.5); }
-        .badge-tomorrow { background: var(--yellow); color: #423508; }
-        .task-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
-        .icon-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.6; transition: 0.2s;}
-        .icon-btn:hover { opacity: 1; transform: scale(1.1); }
-        .progress-container { margin-top: 15px; padding-top: 12px; border-top: 1px dashed #334155; }
-        .progress-label { font-size: 0.75rem; color: #94a3b8; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 8px; text-transform: uppercase;}
-        .slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #334155; outline: none; cursor: pointer;}
-        .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; transition: 0.1s; }
-        .slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-        .historial-section { margin-top: 30px; border-top: 2px solid #334155; padding-top: 20px; display: none; }
-
-        /* LÍNEA DE TIEMPO */
-        .timeline-wrapper { display: none; margin-top: 1rem; animation: fadeIn 0.4s ease; position: relative;}
-        .timeline-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;}
-        .timeline-title { color: #e2e8f0; margin: 0; font-size: 1.5rem; }
-        .btn-center-today { background: var(--warning); color: white; padding: 8px 15px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.4); transition: 0.2s; display: flex; align-items: center; gap: 5px;}
-        .btn-center-today:hover { transform: scale(1.05); }
-        .timeline-year-select { background: #334155; border: 1px solid #475569; color: white; padding: 8px 15px; border-radius: 20px; outline: none; font-weight: bold; cursor: pointer;}
-        .timeline-container { width: 100%; overflow-x: auto; cursor: grab; background: var(--bg-card); border-radius: 12px; padding: 4rem 2rem 2rem 2rem; border: 1px solid #334155; display: flex; gap: 0; min-height: 450px; scrollbar-width: none; -ms-overflow-style: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); position: relative; scroll-behavior: smooth;}
-        .timeline-container::-webkit-scrollbar { display: none; }
-        .timeline-container:active { cursor: grabbing; scroll-behavior: auto; } 
-        .timeline-day { min-width: 320px; display: flex; flex-direction: column; gap: 15px; position: relative; padding-top: 40px; padding-right: 30px;}
-        .timeline-day::before { content: ''; position: absolute; top: 18px; left: 0; width: 100%; height: 4px; background: #475569; z-index: 1;}
-        .timeline-node { position: absolute; top: 12px; left: 0; width: 16px; height: 16px; border-radius: 50%; background: var(--bg-card); border: 4px solid #64748b; z-index: 2; transition: 0.3s;}
-        .timeline-day.is-today::before { background: var(--warning); box-shadow: 0 0 10px var(--warning); z-index: 2;}
-        .timeline-day.is-today .timeline-node { border-color: var(--warning); box-shadow: 0 0 15px var(--warning); width: 20px; height: 20px; top: 10px;}
-        .timeline-day.is-today .timeline-date-header { color: var(--warning); border-color: var(--warning); }
-        .timeline-date-header { font-size: 1.1rem; font-weight: 800; color: #cbd5e1; display: flex; align-items: center; gap: 10px; position: relative; background: var(--bg-page); padding: 5px 12px; width: fit-content; border-radius: 20px; border: 1px solid #475569; z-index: 3; box-shadow: 0 4px 6px rgba(0,0,0,0.3);}
-        .timeline-empty-msg { color: #64748b; font-style: italic; font-size: 0.9rem; padding-left: 10px;}
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        /* OPTIMIZACIÓN: MODO IMPRESIÓN (Reportes en PDF limpios) */
+        @media print {
+            .sidebar, .nav-item, #login-overlay, .no-print, button, .alert { display: none !important; }
+            .app-container { height: auto; }
+            .main-content { padding: 0; background: white !important; color: black !important; overflow: visible; }
+            .table-matriz { background: white !important; }
+            .table-matriz th, .table-matriz td { border: 1px solid #ccc !important; color: black !important; }
+            .row-n1, .row-n2, .row-n3 { background: transparent !important; }
+            .badge { border: 1px solid #000; color: #000 !important; background: transparent !important; }
+            canvas { max-width: 100%; page-break-inside: avoid; }
+            .card { border: 1px solid #ccc; page-break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
         <div class="login-box">
-            <img src="logo.jpg" alt="FUMISCOR" onerror="this.style.display='none'">
-            <h2>Plataforma de Tareas</h2>
+            <img src="logo.jpg" alt="Logo" onerror="this.style.display='none'" style="max-width: 140px; margin-bottom: 20px;">
+            <h4 class="mb-4 text-primary">Plataforma SAO</h4>
             
-            <div id="login-normal" class="login-view">
-                <div>
-                    <label>Seleccionar Registro</label>
-                    <select id="login-dept" style="width: 100%;">
-                        <option value="">Cargando registros...</option>
-                    </select>
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-dark text-white border-secondary"><i class="fas fa-lock"></i></span>
+                <input type="password" id="input-pin" class="form-control bg-dark text-white border-secondary text-center fs-4" placeholder="PIN DE ACCESO" maxlength="6" onkeypress="if(event.key === 'Enter') window.validarPin()">
+            </div>
+            <button class="btn btn-primary w-100 py-2 fw-bold" id="btn-login" onclick="window.validarPin()">INGRESAR</button>
+
+            <div id="login-error" class="text-danger small mt-3 d-none fw-bold">
+                <i class="fas fa-exclamation-triangle"></i> PIN incorrecto o no registrado.
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-main">
+        <div class="sidebar">
+            <div class="logo-box">
+                <img src="logo.jpg" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div style="display:none; font-weight:bold; color:var(--n1-color); font-size: 1.2rem;">SISTEMA SAO</div>
+            </div>
+            <div class="p-3 text-center border-bottom" style="font-size:0.85rem; border-color: var(--border-color);">
+                <i class="fas fa-user-circle text-muted"></i> Rol: <strong id="lbl-rol" class="text-warning text-uppercase"></strong>
+            </div>
+            
+            <div class="mt-2">
+                <div class="nav-item" onclick="window.navTab('sec-identidad', this)"><i class="fas fa-university fa-fw"></i> 1. Identidad y FODA</div>
+                <div class="nav-item active" onclick="window.navTab('sec-matriz', this)"><i class="fas fa-sitemap fa-fw"></i> 2. Matriz DO-SAO</div>
+                <div class="nav-item" onclick="window.navTab('sec-mapa', this)"><i class="fas fa-project-diagram fa-fw"></i> 3. Mapa Estratégico</div>
+                <div class="nav-item" onclick="window.navTab('sec-timeline', this)"><i class="fas fa-stream fa-fw"></i> 4. Línea de Tiempo</div>
+                <div class="nav-item" onclick="window.navTab('sec-graficos', this)"><i class="fas fa-chart-pie fa-fw"></i> 5. Tablero TdB</div>
+                <div class="nav-item" onclick="window.navTab('sec-pdca', this)" id="menu-pdca">
+                    <i class="fas fa-bell fa-fw"></i> 6. Alertas & PDCA
+                    <span class="badge-notify" id="notif-badge" style="display:none;">0</span>
                 </div>
-                <div>
-                    <label>PIN de Acceso</label>
-                    <input type="password" id="login-pin" style="width: 100%;" placeholder="****" onkeypress="if(event.key === 'Enter') login()">
-                </div>
-                <button class="btn-login" onclick="login()">Ingresar al Sistema</button>
                 
-                <div class="footer-tools">
-                    <button class="btn-tool" onclick="toggleVistaLobby('login-crear')">➕ Crear Registro</button>
-                    <button class="btn-tool del" onclick="toggleVistaLobby('login-eliminar')">🗑️ Eliminar</button>
+                <a href="https://tareas-fumiscor.netlify.app/" target="_blank" class="nav-item nav-external">
+                    <i class="fas fa-external-link-alt fa-fw"></i> Gestión de Tareas
+                </a>
+
+                <div class="nav-item config-btn" style="display:none;" onclick="window.navTab('sec-config', this)"><i class="fas fa-cog fa-fw"></i> 7. Configuración</div>
+            </div>
+            
+            <div class="mt-auto p-3 d-flex flex-column gap-2">
+                <button class="btn btn-outline-info w-100 btn-sm" onclick="window.toggleTheme()"><i class="fas fa-adjust"></i> Modo Día / Noche</button>
+                <button class="btn btn-outline-secondary w-100 btn-sm" onclick="window.cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="sec-identidad" class="section">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2">
+                    <h2 class="h4"><i class="fas fa-university text-primary"></i> Identidad y Matriz FODA</h2>
+                    <div class="no-print">
+                        <button class="btn btn-outline-info me-2" onclick="window.print()"><i class="fas fa-print"></i> Imprimir Reporte</button>
+                        <button class="btn btn-primary btn-save-identity d-none" onclick="window.guardarTextos()"><i class="fas fa-save"></i> Guardar Cambios</button>
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6"><label class="fw-bold text-primary mb-1">Misión</label><textarea id="val-mision" class="form-control" rows="3"></textarea></div>
+                    <div class="col-md-6"><label class="fw-bold text-primary mb-1">Visión 2026</label><textarea id="val-vision" class="form-control" rows="3"></textarea></div>
+                </div>
+                <h5 class="border-bottom border-secondary pb-2 mt-4"><i class="fas fa-border-all text-muted"></i> Análisis FODA</h5>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6"><label class="text-success fw-bold mb-1"><i class="fas fa-arrow-up"></i> Fortalezas (Int)</label><textarea id="val-fortalezas" class="form-control" rows="3"></textarea></div>
+                    <div class="col-md-6"><label class="text-danger fw-bold mb-1"><i class="fas fa-arrow-down"></i> Debilidades (Int)</label><textarea id="val-debilidades" class="form-control" rows="3"></textarea></div>
+                    <div class="col-md-6"><label class="text-info fw-bold mb-1"><i class="fas fa-external-link-alt"></i> Oportunidades (Ext)</label><textarea id="val-oportunidades" class="form-control" rows="3"></textarea></div>
+                    <div class="col-md-6"><label class="text-warning fw-bold mb-1"><i class="fas fa-exclamation-triangle"></i> Amenazas (Ext)</label><textarea id="val-amenazas" class="form-control" rows="3"></textarea></div>
                 </div>
             </div>
 
-            <div id="login-crear" class="login-view" style="display: none;">
-                <div>
-                    <label>Tipo de Registro</label>
-                    <select id="new-dept-type" style="width: 100%;">
-                        <option value="🏢 Departamento">🏢 Departamento</option>
-                        <option value="🚀 Proyecto">🚀 Proyecto</option>
-                        <option value="📅 Evento">📅 Evento</option>
-                    </select>
+            <div id="sec-matriz" class="section active">
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary pb-2">
+                    <h2 class="h4"><i class="fas fa-sitemap text-primary"></i> Matriz Despliegue de Objetivos</h2>
+                    <div class="d-flex gap-2 no-print">
+                        <button class="btn btn-outline-success" onclick="window.exportarCSV()"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
+                        <button class="btn btn-outline-info" onclick="window.print()"><i class="fas fa-file-pdf"></i> Guardar PDF</button>
+                        <button class="btn btn-primary btn-add-n1" style="display:none;" onclick="window.crearN1()"><i class="fas fa-plus"></i> Nuevo N1</button>
+                    </div>
                 </div>
-                <div>
-                    <label>Nombre del Registro</label>
-                    <input type="text" id="new-dept-name" style="width: 100%;" placeholder="Ej: Recursos Humanos">
+
+                <div class="row mb-3 p-3 rounded border border-secondary bg-surface no-print">
+                    <div class="col-md-3 mb-2 mb-md-0">
+                        <label class="small fw-bold text-muted"><i class="fas fa-search"></i> Búsqueda Libre:</label>
+                        <input type="text" id="flt-matriz-text" class="form-control form-control-sm" placeholder="Buscar estrategia o KPI..." onkeyup="window.renderMatriz()">
+                    </div>
+                    <div class="col-md-2 mb-2 mb-md-0">
+                        <label class="small fw-bold text-muted"><i class="fas fa-layer-group"></i> Nivel:</label>
+                        <select id="flt-matriz-nivel" class="form-select form-select-sm" onchange="window.renderMatriz()">
+                            <option value="3">Hasta N3 (Todos)</option>
+                            <option value="1">Hasta N1</option>
+                            <option value="2">Hasta N2</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-2 mb-md-0">
+                        <label class="small fw-bold text-muted"><i class="fas fa-building"></i> Área:</label>
+                        <select id="flt-matriz-area" class="form-select form-select-sm" onchange="window.renderMatriz()"><option value="ALL">Todas</option></select>
+                    </div>
+                    <div class="col-md-2 mb-2 mb-md-0">
+                        <label class="small fw-bold text-muted"><i class="fas fa-traffic-light"></i> Status YTD:</label>
+                        <select id="flt-matriz-status" class="form-select form-select-sm" onchange="window.renderMatriz()">
+                            <option value="ALL">Todos</option>
+                            <option value="OK">Cumple Meta</option>
+                            <option value="ALERT">No Cumple</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button class="btn btn-sm btn-outline-secondary w-100" onclick="window.limpiarFiltrosMatriz()" title="Limpiar Filtros"><i class="fas fa-times"></i></button>
+                    </div>
                 </div>
-                <div>
-                    <label>Inventar PIN de Acceso</label>
-                    <input type="password" id="new-dept-pin" style="width: 100%;" placeholder="****" onkeypress="if(event.key === 'Enter') crearAreaNueva()">
+                
+                <div class="table-responsive rounded border border-secondary" style="max-height: 65vh;">
+                    <table class="table-matriz" id="matriz-export">
+                        <thead>
+                            <tr>
+                                <th width="6%">Niv</th>
+                                <th width="24%">Estrategia / Acción</th>
+                                <th width="12%">Horizonte</th>
+                                <th width="12%">Responsable</th>
+                                <th width="14%">Áreas / KPI</th>
+                                <th width="8%">Target</th>
+                                <th width="6%">YTD</th>
+                                <th width="18%" class="no-print">Gestión</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matriz-body"></tbody>
+                    </table>
                 </div>
-                <button class="btn-login" style="background: var(--success);" onclick="crearAreaNueva()">Crear e Ingresar</button>
-                <button class="btn-link" onclick="toggleVistaLobby('login-normal')">⬅️ Volver atrás</button>
             </div>
 
-            <div id="login-eliminar" class="login-view" style="display: none;">
-                <p style="font-size: 0.85rem; color: var(--danger); text-align: center; font-weight: bold; margin-bottom: 0px;">⚠️ Se borrarán todos los datos y tareas permanentemente.</p>
-                <div>
-                    <label>Seleccionar Registro a Eliminar</label>
-                    <select id="del-dept-name" style="width: 100%;"></select>
+            <div id="sec-mapa" class="section">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-4">
+                    <h2 class="h4"><i class="fas fa-project-diagram text-primary"></i> Mapa Estratégico</h2>
+                    <button class="btn btn-outline-info no-print" onclick="window.print()"><i class="fas fa-print"></i></button>
                 </div>
-                <div>
-                    <label>PIN de Confirmación</label>
-                    <input type="password" id="del-dept-pin" style="width: 100%;" placeholder="****">
+                <div id="mapa-container"></div>
+            </div>
+
+            <div id="sec-timeline" class="section">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-4">
+                    <h2 class="h4"><i class="fas fa-stream text-primary"></i> Roadmap</h2>
+                    <button class="btn btn-outline-info no-print" onclick="window.print()"><i class="fas fa-print"></i></button>
                 </div>
-                <button class="btn-login" style="background: var(--danger);" onclick="eliminarAreaDeLaNube()">Confirmar Eliminación</button>
-                <button class="btn-link" onclick="toggleVistaLobby('login-normal')">⬅️ Volver atrás</button>
+                <div id="roadmap-container" class="roadmap-container"></div>
+            </div>
+
+            <div id="sec-graficos" class="section">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2">
+                    <h2 class="h4"><i class="fas fa-chart-pie text-primary"></i> Tablero Ejecutivo</h2>
+                    <div class="no-print">
+                        <button class="btn btn-outline-info me-2" onclick="window.print()"><i class="fas fa-print"></i> Imprimir Tablero</button>
+                        <button class="btn btn-outline-primary" onclick="window.analisisIA()"><i class="fas fa-robot"></i> Analista IA</button>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-5"><div class="card h-100 p-3"><canvas id="radar-n1"></canvas></div></div>
+                    <div class="col-md-7">
+                        <div class="card h-100 ai-panel p-4">
+                            <h5 class="text-primary"><i class="fas fa-robot"></i> Asistente de Rigor SAO</h5>
+                            <div id="ai-summary" class="text-muted small">Haz clic en "Analista IA" para evaluar los planes de acción vencidos.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4 mt-1" id="dashboard-container"></div>
+            </div>
+
+            <div id="sec-pdca" class="section">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-4">
+                    <h2 class="h4"><i class="fas fa-bell text-warning"></i> Alertas y Gestión PDCA</h2>
+                    <button class="btn btn-outline-info no-print" onclick="window.print()"><i class="fas fa-print"></i></button>
+                </div>
+                <div id="alert-banner" class="alert alert-danger d-none fw-bold"><i class="fas fa-exclamation-triangle"></i> Tienes planes de acción vencidos.</div>
+                <div id="pdca-container" class="row g-3"></div>
+            </div>
+
+            <div id="sec-config" class="section">
+                <h2 class="h4 border-bottom border-secondary pb-2 mb-4"><i class="fas fa-cog text-primary"></i> Configuración del Sistema</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card p-3 mb-3">
+                            <h6 class="text-warning"><i class="fas fa-magic"></i> Entorno de Pruebas</h6>
+                            <p class="small text-muted mb-2">Inyecta datos de demostración para probar todas las funciones (Gráficos, KPIs, Timeline).</p>
+                            <button class="btn btn-warning w-100 fw-bold" onclick="window.cargarDatosDemo()"><i class="fas fa-database"></i> Cargar Datos Demo a Firebase</button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3">
+                            <h6 class="text-info"><i class="fas fa-building"></i> Áreas Transversales</h6>
+                            <div class="input-group mb-3"><input type="text" id="nueva-area" class="form-control" placeholder="Nueva área..."><button class="btn btn-primary" onclick="window.agregarArea()">+ Agregar</button></div>
+                            <div id="lista-areas" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="app-wrapper" class="app-padding" style="display: none;">
-        <div class="header-container">
-            <div>
-                <div class="header-top">
-                    <div class="logo-box"><img src="logo.jpg" alt="FUMISCOR" class="logo-img" onerror="this.style.display='none'"></div>
-                    <h1 id="main-title">🗓️ Lista de Pendientes</h1>
+    <div class="modal fade" id="modalDatos" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-surface border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-success"><i class="fas fa-calendar-alt"></i> Carga de Datos Mensuales</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
                 </div>
-                <div style="margin-top: 10px;"><div class="week-indicator" id="currentWeekDisplay">Calculando semana...</div></div>
-            </div>
-            <div class="view-toggle">
-                <button id="btn-mode-equipo" class="mode-btn active" onclick="setMode('equipo')">🏢 Equipo</button>
-                <button id="btn-mode-personal" class="mode-btn" onclick="setMode('personal')">👤 Personal (Privado)</button>
-                <button id="btn-mode-timeline" class="mode-btn" onclick="setMode('timeline')">⏳ Línea de Tiempo</button>
-                <button class="btn-logout" onclick="logout()">Salir 🚪</button>
-            </div>
-        </div>
-
-        <div class="actions-bar" id="main-actions-bar">
-            <button class="btn btn-clear" onclick="borrarTodo()">🗑️ Borrar Todo</button>
-            <button class="btn btn-export" onclick="exportarCSV()">📥 Exportar Excel</button>
-            <div class="file-upload-wrapper">
-                <button class="btn btn-import">📂 Importar Respaldo</button>
-                <input type="file" id="fileInput" accept=".csv" onchange="importarCSV(event)">
-            </div>
-            <button class="btn btn-action-top" style="background: var(--info)" onclick="toggleAnalytics()">📊 Ver Analíticas</button>
-            <button class="btn btn-action-top" onclick="organizarTareas()">✨ Ordenar</button>
-        </div>
-
-        <div class="analytics-section" id="analyticsContainer">
-            <h2 class="analytics-title">📊 Analíticas del <span id="analytics-mode-label">Equipo</span></h2>
-            <div class="charts-grid">
-                <div class="chart-card"><h3>Carga de Trabajo</h3><div class="bar-chart" id="barChartUser"></div></div>
-                <div class="chart-card"><h3>Distribución de Esfuerzo</h3><div class="pie-chart-wrapper"><div class="pie-chart" id="pieChartArea"></div><div class="chart-legend" id="legendArea"></div></div></div>
-            </div>
-        </div>
-
-        <div class="dashboard" id="main-dashboard">
-            <div class="metric-card danger"><div class="metric-header">⚠️ ATRASADAS</div><div class="metric-value" id="kpi-atrasadas">0</div></div>
-            <div class="metric-card info"><div class="metric-header">⚡ VENCEN EN 7 DÍAS</div><div class="metric-value" id="kpi-vence-semana">0</div></div>
-            <div class="metric-card accent"><div class="metric-header">📅 VENCEN EN 30 DÍAS</div><div class="metric-value" id="kpi-vence-mes">0</div></div>
-        </div>
-
-        <div class="task-form" id="main-task-form">
-            <div class="form-group desc"><label>Descripción</label><input type="text" id="taskName" placeholder="¿Qué hay que hacer?"></div>
-            <div class="form-group"><label>Área / Categoría</label><input type="text" id="taskCategory" placeholder="Ej: Ventas..." list="categoryList"><datalist id="categoryList"></datalist></div>
-            <div class="form-group"><label>Responsable</label><input type="text" id="taskUser" placeholder="Ej: Iván, Ana..."></div>
-            <div class="form-group"><label>Fecha</label><input type="date" id="taskDate"></div>
-            <div class="form-group"><label>Frecuencia</label><select id="taskPeriod"><option value="unica">Una vez</option><option value="diaria">Diaria</option><option value="semanal">Semanal</option><option value="mensual">Mensual</option></select></div>
-            <div class="form-group"><label>Prioridad</label><select id="taskPriority"><option value="6">Crítica</option><option value="5">Muy Alta</option><option value="4">Alta</option><option value="3" selected>Normal</option><option value="2">Baja</option></select></div>
-            <button class="btn btn-add" id="btnSubmit" onclick="guardarTarea()">+ AÑADIR</button>
-        </div>
-
-        <div class="filters-container" id="main-filters">
-            <div class="filter-row">
-                <span style="font-size: 0.8rem; color: #94a3b8; font-weight: bold;">🔎 FILTRAR:</span>
-                <input type="text" id="searchBar" class="search-bar" placeholder="Buscar palabra..." oninput="debouncedSearch()">
-                <select id="filterCategory" onchange="triggerRender()"><option value="todas">🏢 Todas las Áreas</option></select>
-                <select id="filterUser" onchange="triggerRender()"><option value="todos">👤 Todos los Responsables</option></select>
-                <select id="filterPeriod" onchange="triggerRender()"><option value="todas">🔄 Todas las Frecuencias</option><option value="unica">Una vez</option><option value="diaria">Diaria</option><option value="semanal">Semanal</option><option value="mensual">Mensual</option></select>
-                <select id="filterPriority" onchange="triggerRender()"><option value="todas">⚡ Todas las Prioridades</option><option value="6">Crítica</option><option value="5">Muy Alta</option><option value="4">Alta</option><option value="3">Normal</option><option value="2">Baja</option></select>
-            </div>
-            <hr class="filter-divider">
-            <div class="filter-row" style="justify-content: space-between;">
-                <div style="display:flex; gap: 10px; align-items:center;">
-                    <span style="font-size: 0.8rem; color: #94a3b8; font-weight: bold;">📌 ESTADO:</span>
-                    <button class="filter-btn state-btn active-info active" id="f-pendientes" onclick="setFiltroEstado('pendientes')">⏳ Pendientes</button>
-                    <button class="filter-btn state-btn" id="f-completadas" onclick="setFiltroEstado('completadas')">✅ Completadas</button>
-                    <button class="filter-btn state-btn" id="f-atrasadas" onclick="setFiltroEstado('atrasadas')">⚠️ Atrasadas</button>
-                    <button class="filter-btn state-btn" id="f-todas" onclick="setFiltroEstado('todas')">📋 Mostrar Todo</button>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background: var(--bg-base); border: 1px solid var(--border-color);">
+                        <div><strong id="modal-kpi-name" class="text-primary fs-5">KPI</strong> <br><small class="text-muted">Target: <span id="modal-kpi-target" class="text-main fw-bold"></span></small></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="fw-bold text-muted">Año:</label>
+                            <select id="modal-year-select" class="form-select form-select-sm w-auto" onchange="window.cargarGrillaMeses()"></select>
+                        </div>
+                    </div>
+                    <div class="row" id="modal-grid-meses"></div>
                 </div>
-                <div style="display:flex; gap: 10px; align-items:center;" id="col-toggles-container">
-                    <span style="font-size: 0.8rem; color: #94a3b8; font-weight: bold;">👁️ COLUMNAS VISIBLES:</span>
-                    <button class="toggle-col-btn" id="btn-col-unica" onclick="toggleColumna('unica')">✅ Una Vez</button>
-                    <button class="toggle-col-btn" id="btn-col-diaria" onclick="toggleColumna('diaria')">✅ Diarias</button>
-                    <button class="toggle-col-btn" id="btn-col-semanal" onclick="toggleColumna('semanal')">✅ Semanales</button>
-                    <button class="toggle-col-btn" id="btn-col-mensual" onclick="toggleColumna('mensual')">✅ Mensuales</button>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-success" onclick="window.guardarDatosMeses()"><i class="fas fa-save"></i> Guardar</button>
                 </div>
             </div>
-        </div>
-
-        <div class="boards" id="main-boards">
-            <div class="board" id="unica" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"><div class="board-header">UNA VEZ</div><div id="list-unica" class="task-list"></div></div>
-            <div class="board" id="diaria" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"><div class="board-header">DIARIAS</div><div id="list-diaria" class="task-list"></div></div>
-            <div class="board" id="semanal" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"><div class="board-header">SEMANALES</div><div id="list-semanal" class="task-list"></div></div>
-            <div class="board" id="mensual" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"><div class="board-header">MENSUALES</div><div id="list-mensual" class="task-list"></div></div>
-        </div>
-
-        <div class="historial-section" id="historialContainer">
-            <h2 style="margin-bottom: 15px; color: var(--success);">✅ Tareas Completadas (Historial)</h2>
-            <div id="list-historial" class="task-list"></div>
-        </div>
-
-        <div class="timeline-wrapper" id="timelineWrapper">
-            <div class="timeline-controls">
-                <h2 class="timeline-title">⏳ Línea de Tiempo Global</h2>
-                <div style="display:flex; gap: 10px; align-items: center;">
-                    <select id="timelineYearFilter" class="timeline-year-select" onchange="triggerRender()">
-                        <option value="todos">📅 Todos los años</option>
-                    </select>
-                    <button class="btn-center-today" onclick="scrollToToday()">🎯 Centrar en HOY</button>
-                </div>
-            </div>
-            <div class="timeline-container" id="timelineContainer"></div>
         </div>
     </div>
 
-    <script>
-        // ==========================================
-        // CONFIGURACIÓN DE FIREBASE
-        // ==========================================
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
         const firebaseConfig = {
-            apiKey: "AIzaSyBZODennemGxIViwbI8WtugBpgxRXN_CpE",
-            authDomain: "fumiscor-tareas.firebaseapp.com",
-            databaseURL: "https://fumiscor-tareas-default-rtdb.firebaseio.com",
-            projectId: "fumiscor-tareas",
-            storageBucket: "fumiscor-tareas.firebasestorage.app",
-            messagingSenderId: "595682919906",
-            appId: "1:595682919906:web:a439bb8ae895d58e5a65bb"
+            apiKey: "AIzaSyBiuEOcZgx48FPFi5IaYialauDxgeYK9Yk",
+            authDomain: "matriz-sao-fumiscor.firebaseapp.com",
+            projectId: "matriz-sao-fumiscor",
+            storageBucket: "matriz-sao-fumiscor.firebasestorage.app",
+            messagingSenderId: "376364627038",
+            appId: "1:376364627038:web:61afb38e0bc11f4f7cf0cf",
+            measurementId: "G-8Z601H3BJE"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
 
-        // ==========================================
-        // VARIABLES GLOBALES Y PRIVACIDAD
-        // ==========================================
-        let activeDepartment = '';
-        let currentMode = 'equipo'; 
-        let tareas = [];
-        let firebaseData = { equipo: [] }; 
-        let storageKeys = { personal: '' }; 
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let rolActual = '';
+        let areaActual = 'ALL';
+        let appData = { config: { areas: [] }, identidad: {}, despliegue: [] };
         
-        let tareasListener = null; 
-        let idEditando = null;
-        let filtroEstado = 'pendientes'; 
-        let debounceTimer;
+        const MESES_KEY = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        const MESES_NOM = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        let charts = [];
+        let radarChartInstance = null;
+        let modalIndices = { i1: null, i2: null, i3: null };
 
-        const colorPalette = [
-            { bg: 'rgba(249, 115, 22, 0.15)', border: 'rgba(249, 115, 22, 0.3)', color: '#fdba74' }, 
-            { bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.3)', color: '#6ee7b7' }, 
-            { bg: 'rgba(168, 85, 247, 0.15)', border: 'rgba(168, 85, 247, 0.3)', color: '#d8b4fe' }, 
-            { bg: 'rgba(6, 182, 212, 0.15)', border: 'rgba(6, 182, 212, 0.3)', color: '#67e8f9' },   
-            { bg: 'rgba(236, 72, 153, 0.15)', border: 'rgba(236, 72, 153, 0.3)', color: '#f9a8d4' }, 
-            { bg: 'rgba(234, 179, 8, 0.15)', border: 'rgba(234, 179, 8, 0.3)', color: '#fde047' },   
-            { bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.3)', color: '#93c5fd' }, 
-            { bg: 'rgba(148, 163, 184, 0.15)', border: 'rgba(148, 163, 184, 0.3)', color: '#cbd5e1' }  
-        ];
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const fechaActual = new Date();
-            document.getElementById('currentWeekDisplay').innerText = `Semana Actual: W${getISOWeek(fechaActual)}`;
-            document.getElementById('taskDate').value = fechaActual.toISOString().split('T')[0];
-            initDragToScroll();
-
-            cargarAreasDeLaNube();
-
-            const savedDept = sessionStorage.getItem('fumiscor_logged_dept');
-            if (savedDept) { iniciarSesionApp(savedDept); }
+        // OPTIMIZACIÓN: Toasts (Notificaciones que no interrumpen)
+        const Toast = Swal.mixin({
+            toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true,
+            background: 'var(--bg-surface)', color: 'var(--text-main)'
         });
 
-        // ==========================================
-        // LOGIN Y DEPARTAMENTOS
-        // ==========================================
-        function toggleVistaLobby(vistaId) {
-            document.getElementById('login-normal').style.display = 'none';
-            document.getElementById('login-crear').style.display = 'none';
-            document.getElementById('login-eliminar').style.display = 'none';
-            document.getElementById(vistaId).style.display = 'flex';
-        }
-
-        function cargarAreasDeLaNube() {
-            db.ref('departamentos').once('value').then((snapshot) => {
-                const selectLogin = document.getElementById('login-dept');
-                const selectDel = document.getElementById('del-dept-name');
-                selectLogin.innerHTML = '';
-                if(selectDel) selectDel.innerHTML = '';
-                
-                if(snapshot.exists()) {
-                    const data = snapshot.val();
-                    Object.keys(data).forEach(area => {
-                        const tipo = data[area].tipo ? data[area].tipo + " " : "🏢 Departamento ";
-                        const labelCombo = tipo + "| " + area;
-                        
-                        selectLogin.innerHTML += `<option value="${area}">${labelCombo}</option>`;
-                        if(selectDel) selectDel.innerHTML += `<option value="${area}">${labelCombo}</option>`;
-                    });
-                } else { 
-                    selectLogin.innerHTML = '<option value="">-- No hay registros creados --</option>'; 
-                }
-            });
-        }
-
-        function crearAreaNueva() {
-            let nombre = document.getElementById('new-dept-name').value.trim();
-            let pin = document.getElementById('new-dept-pin').value.trim();
-            let tipo = document.getElementById('new-dept-type').value;
-
-            if (!nombre || !pin) return alert("Debes ponerle un nombre al área y un PIN secreto.");
-            nombre = nombre.replace(/[.#$\[\]]/g, ''); 
-
-            db.ref('departamentos/' + nombre).once('value').then(snapshot => {
-                if(snapshot.exists()) { alert(`El registro "${nombre}" ya existe. Vuelve y usa el ingreso normal.`); } 
-                else {
-                    db.ref('departamentos/' + nombre).set({
-                        pin_secreto: pin,
-                        tipo: tipo
-                    }).then(() => {
-                        iniciarSesionApp(nombre); cargarAreasDeLaNube(); 
-                    });
-                }
-            });
-        }
-
-        function eliminarAreaDeLaNube() {
-            const nombre = document.getElementById('del-dept-name').value;
-            const pin = document.getElementById('del-dept-pin').value;
-            
-            if(!nombre || !pin) return alert("Selecciona el registro e ingresa su PIN.");
-
-            db.ref('departamentos/' + nombre + '/pin_secreto').once('value').then(snap => {
-                if(snap.val() === pin) {
-                    if(confirm(`⚠️ ¿Estás completamente seguro de ELIMINAR "${nombre}" y todas sus tareas? Esta acción es IRREVERSIBLE y no se puede recuperar.`)) {
-                        db.ref('departamentos/' + nombre).remove().then(() => {
-                            alert("Registro eliminado con éxito de la nube.");
-                            document.getElementById('del-dept-pin').value = '';
-                            toggleVistaLobby('login-normal');
-                            cargarAreasDeLaNube();
-                        });
-                    }
-                } else {
-                    alert("❌ PIN Incorrecto. Solo el creador del área puede eliminarla.");
-                }
-            });
-        }
-
-        function login() {
-            const dept = document.getElementById('login-dept').value;
-            const pinInput = document.getElementById('login-pin').value;
-            if (!dept) return alert("Selecciona un área de la lista o crea una nueva.");
-            if (!pinInput) return alert("Por favor, ingresa el PIN.");
-
-            db.ref('departamentos/' + dept + '/pin_secreto').once('value').then((snapshot) => {
-                if (snapshot.val() === pinInput) { iniciarSesionApp(dept); } 
-                else { alert(`❌ PIN incorrecto para el registro de ${dept}.`); document.getElementById('login-pin').value = ''; }
-            }).catch(error => { alert("Error de conexión con la nube."); });
-        }
-
-        function iniciarSesionApp(dept) {
-            activeDepartment = dept;
-            storageKeys.personal = `fumiscor_local_tareas_${dept}`; 
-            
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('app-wrapper').style.display = 'block';
-            sessionStorage.setItem('fumiscor_logged_dept', dept);
-
-            if (tareasListener) db.ref('departamentos/' + dept + '/equipo').off('value', tareasListener);
-
-            tareasListener = db.ref('departamentos/' + dept + '/equipo').on('value', (snapshot) => {
-                firebaseData.equipo = snapshot.val() || [];
-                if (currentMode === 'equipo' || currentMode === 'timeline') {
-                    if (currentMode === 'equipo') tareas = firebaseData.equipo;
-                    triggerRender();
-                }
-            });
-
-            setMode('equipo');
-        }
-
-        function logout() {
-            sessionStorage.removeItem('fumiscor_logged_dept');
-            if (tareasListener && activeDepartment) db.ref('departamentos/' + activeDepartment + '/equipo').off('value', tareasListener);
-            activeDepartment = ''; tareas = [];
-            document.getElementById('app-wrapper').style.display = 'none';
-            document.getElementById('login-overlay').style.display = 'flex';
-            document.getElementById('login-pin').value = '';
-            toggleVistaLobby('login-normal');
-            cargarAreasDeLaNube();
-        }
-
-        // ==========================================
-        // GUARDADO INTELIGENTE (NUBE VS LOCAL)
-        // ==========================================
-        function syncData() {
-            if (currentMode === 'equipo') {
-                db.ref('departamentos/' + activeDepartment + '/equipo').set(tareas);
-            } else if (currentMode === 'personal') {
-                localStorage.setItem(storageKeys.personal, JSON.stringify(tareas));
-            }
-        }
-
-        // ==========================================
-        // VISTAS Y MODOS
-        // ==========================================
-        function setMode(mode) {
-            currentMode = mode; idEditando = null; document.getElementById('btnSubmit').innerText = "+ AÑADIR";
-            document.querySelectorAll('.mode-btn').forEach(b => { b.classList.remove('active', 'active-personal', 'active-timeline'); });
-            const activeBtn = document.getElementById('btn-mode-' + mode);
-            
-            const showNormal = (mode !== 'timeline');
-            document.getElementById('main-task-form').style.display = showNormal ? 'flex' : 'none';
-            document.getElementById('main-dashboard').style.display = showNormal ? 'grid' : 'none';
-            document.getElementById('col-toggles-container').style.display = showNormal && filtroEstado !== 'completadas' ? 'flex' : 'none';
-            document.getElementById('main-boards').style.display = showNormal && filtroEstado !== 'completadas' ? 'grid' : 'none';
-            document.getElementById('historialContainer').style.display = showNormal && (filtroEstado === 'completadas' || filtroEstado === 'todas') ? 'block' : 'none';
-            document.getElementById('timelineWrapper').style.display = showNormal ? 'none' : 'block';
-            document.getElementById('analyticsContainer').style.display = 'none';
-
-            if (mode === 'timeline') {
-                activeBtn.classList.add('active-timeline');
-                document.getElementById('main-title').innerText = `⏳ Línea de Tiempo - ${activeDepartment.toUpperCase()}`;
-                triggerRender(); setTimeout(scrollToToday, 50);
+        // Toggle Theme
+        window.toggleTheme = function() {
+            const html = document.documentElement;
+            if(html.getAttribute('data-bs-theme') === 'dark') {
+                html.setAttribute('data-bs-theme', 'light');
+                document.getElementById('swal-theme').href = "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-default@4/default.css";
             } else {
-                if(mode === 'personal') { 
-                    activeBtn.classList.add('active-personal'); 
-                    document.getElementById('main-title').innerText = `🗓️ Tareas Personales (Privado)`; 
-                    document.getElementById('taskUser').value = 'Mi Usuario'; 
-                    tareas = JSON.parse(localStorage.getItem(storageKeys.personal) || '[]');
-                } 
-                else { 
-                    activeBtn.classList.add('active'); 
-                    document.getElementById('main-title').innerText = `🗓️ Tareas Equipo - ${activeDepartment.toUpperCase()}`; 
-                    document.getElementById('taskUser').value = ''; 
-                    tareas = firebaseData.equipo || []; 
-                }
-                triggerRender();
+                html.setAttribute('data-bs-theme', 'dark');
+                document.getElementById('swal-theme').href = "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css";
             }
+            if(document.getElementById('sec-graficos').classList.contains('active')) renderGraficos(); // Redibujar graficos para contrastes
         }
 
-        function setFiltroEstado(estado) {
-            filtroEstado = estado;
-            document.querySelectorAll('.state-btn').forEach(b => { 
-                b.classList.remove('active', 'active-info', 'active-success', 'active-danger'); 
-            });
-            const btn = document.getElementById(`f-${estado}`);
-            btn.classList.add('active');
-            if (estado === 'pendientes') btn.classList.add('active-info');
-            if (estado === 'completadas') btn.classList.add('active-success');
-            if (estado === 'atrasadas') btn.classList.add('active-danger');
-            
-            document.getElementById('col-toggles-container').style.display = estado === 'completadas' || currentMode === 'timeline' ? 'none' : 'flex';
-            document.getElementById('main-boards').style.display = estado === 'completadas' || currentMode === 'timeline' ? 'none' : 'grid';
-            document.getElementById('historialContainer').style.display = (estado === 'completadas' || estado === 'todas') && currentMode !== 'timeline' ? 'block' : 'none';
-            
-            triggerRender();
-        }
-
-        // ==========================================
-        // RENDERIZADO LÍNEA DE TIEMPO (AHORA CON ZOOM AÑOS Y SEMANA)
-        // ==========================================
-        function renderTimeline() {
-            const eqTasks = JSON.parse(JSON.stringify(firebaseData.equipo || []));
-            const peTasks = JSON.parse(localStorage.getItem(storageKeys.personal) || '[]');
-            
-            eqTasks.forEach(t => t.source = 'Equipo'); 
-            peTasks.forEach(t => t.source = 'Personal');
-            
-            const textoBusqueda = normalizarTexto(document.getElementById('searchBar').value);
-            const usuarioFiltrado = document.getElementById('filterUser').value; const catFiltrada = document.getElementById('filterCategory').value;
-            const perFiltrado = document.getElementById('filterPeriod').value; const prioFiltrada = document.getElementById('filterPriority').value;
-            const hoyIso = new Date().toISOString().split('T')[0];
-
-            // 1. Recolectar años únicos y hacer primer filtrado general
-            const uniqueYears = new Set();
-            const yearFilterEl = document.getElementById('timelineYearFilter');
-            const currentSelectedYear = yearFilterEl.value;
-
-            let todasFiltradas = [...eqTasks, ...peTasks].filter(t => {
-                if(!t.fecha) t.fecha = hoyIso;
-                
-                // Recolectar año para el selector de zoom
-                uniqueYears.add(t.fecha.split('-')[0]);
-
-                const hoy = new Date(); hoy.setHours(0,0,0,0); const fechaT = new Date(t.fecha + 'T00:00:00');
-                const diffDays = Math.round((hoy - fechaT) / (1000 * 60 * 60 * 24)); const esAtrasada = diffDays > 0 && t.estado !== 'completada';
-
-                if (filtroEstado === 'pendientes' && t.estado === 'completada') return false;
-                if (filtroEstado === 'completadas' && t.estado !== 'completada') return false;
-                if (filtroEstado === 'atrasadas' && (!esAtrasada || t.estado === 'completada')) return false;
-
-                const normResp = normalizarTexto(t.responsable || 'Sin asignar'); const normCat = normalizarTexto(t.categoria || 'General'); const normNombre = normalizarTexto(t.nombre);
-                if (catFiltrada !== 'todas' && normCat !== normalizarTexto(catFiltrada)) return false;
-                if (usuarioFiltrado !== 'todos' && normResp !== normalizarTexto(usuarioFiltrado)) return false;
-                if (perFiltrado !== 'todas' && (t.periodo || 'unica') !== perFiltrado) return false;
-                if (prioFiltrada !== 'todas' && (t.prioridad || 3) != prioFiltrada) return false;
-                if (textoBusqueda && !normNombre.includes(textoBusqueda) && !normResp.includes(textoBusqueda) && !normCat.includes(textoBusqueda)) return false;
-                return true;
-            });
-            
-            // 2. Actualizar las opciones del desplegable de años (Zoom por año)
-            const yearsArr = Array.from(uniqueYears).sort();
-            let yearOptions = `<option value="todos">📅 Todos los años</option>`;
-            yearsArr.forEach(y => { yearOptions += `<option value="${y}">Año ${y}</option>`; });
-            yearFilterEl.innerHTML = yearOptions;
-            
-            if(yearsArr.includes(currentSelectedYear)) { yearFilterEl.value = currentSelectedYear; } 
-            else if (currentSelectedYear !== 'todos') { yearFilterEl.value = 'todos'; }
-
-            // 3. Aplicar el zoom/filtro por año seleccionado
-            const selectedYear = yearFilterEl.value;
-            if (selectedYear !== 'todos') {
-                todasFiltradas = todasFiltradas.filter(t => t.fecha.startsWith(selectedYear));
-            }
-
-            // 4. Agrupar por fecha
-            const grouped = {}; grouped[hoyIso] = [];
-            todasFiltradas.forEach(t => { if(!grouped[t.fecha]) grouped[t.fecha] = []; grouped[t.fecha].push(t); });
-
-            const sortedDates = Object.keys(grouped).sort((a,b) => new Date(a) - new Date(b));
-            const container = document.getElementById('timelineContainer'); let html = '';
-
-            sortedDates.forEach(date => {
-                let isToday = (date === hoyIso); let formattedDate = date.split('-').reverse().join('/');
-                let dayClasses = isToday ? 'timeline-day is-today' : 'timeline-day'; let dayId = isToday ? 'id="timeline-today"' : ''; 
-                
-                // NUEVO: Semana del Año
-                let dObj = new Date(date + 'T00:00:00');
-                let wNum = getISOWeek(dObj);
-                let badgeHoy = isToday 
-                    ? `🔥 HOY <span style="color:#818cf8; margin-left:6px; font-size:0.85rem;">(W${wNum})</span>` 
-                    : `📅 ${formattedDate} <span style="color:#818cf8; margin-left:6px; font-size:0.85rem;">(W${wNum})</span>`;
-                
-                let htmlTasks = '';
-                if(grouped[date].length === 0) { htmlTasks = `<div class="timeline-empty-msg">Día libre. Nada por aquí.</div>`; } 
-                else {
-                    htmlTasks = grouped[date].map(t => {
-                        let colorScore = t.prioridad || 3; let borderColor = `var(--borde-${colorScore})`; let checkIcon = t.estado === 'completada' ? '✅ ' : '';
-                        if (t.estado === 'completada') borderColor = 'var(--success)';
-                        let sourceBadge = t.source === 'Equipo' ? '<span class="badge badge-source-eq">🏢 Eq</span>' : '<span class="badge badge-source-pe">👤 Privado</span>';
-                        return `
-                            <div class="task-item" style="border-left-color: ${borderColor}; background: var(--prioridad-${colorScore}); padding: 12px; cursor: default; opacity: ${t.estado === 'completada' ? '0.7' : '1'}">
-                                <b style="font-size:0.9rem; margin-bottom: 5px; ${t.estado==='completada' ? 'text-decoration: line-through;' : ''}">${checkIcon}${t.nombre}</b>
-                                <div class="task-badges" style="margin-top: 5px;">${sourceBadge}<span class="badge" style="${getBadgeStyle(t.categoria || 'General')}">🏢 ${t.categoria || 'General'}</span><span class="badge badge-user">👤 ${t.responsable || 'Sin Asignar'}</span></div>
-                            </div>`;
-                    }).join('');
-                }
-                html += `<div class="${dayClasses}" ${dayId}><div class="timeline-node"></div><div class="timeline-date-header">${badgeHoy}</div><div class="task-list" style="margin-top: 10px;">${htmlTasks}</div></div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        // ==========================================
-        // RENDERIZADO GENERAL Y FILTROS
-        // ==========================================
-        function triggerRender() { if (currentMode === 'timeline') renderTimeline(); else renderizarTareas(); }
-
-        function renderizarTareas() {
-            if (currentMode === 'timeline') return; 
-            try {
-                const listas = { unica: '', diaria: '', semanal: '', mensual: '', historial: '' };
-                let kpiAtrasadas = 0, kpiVenceSemana = 0, kpiVenceMes = 0; const currentWeek = getISOWeek(new Date());
-
-                const textoBusqueda = normalizarTexto(document.getElementById('searchBar').value);
-                const usuarioFiltrado = document.getElementById('filterUser').value; const catFiltrada = document.getElementById('filterCategory').value;
-                const perFiltrado = document.getElementById('filterPeriod').value; const prioFiltrada = document.getElementById('filterPriority').value;
-
-                tareas.forEach(t => {
-                    if(!t.fecha) t.fecha = new Date().toISOString().split('T')[0];
-                    if(!t.periodo) t.periodo = 'unica'; if(!t.id) t.id = 'id' + Math.random();
-                    if(!t.responsable) t.responsable = 'Sin asignar'; if(!t.categoria) t.categoria = 'General';
-                    if(t.progreso === undefined) t.progreso = 0;
-
-                    const hoy = new Date(); hoy.setHours(0,0,0,0); const fechaT = new Date(t.fecha + 'T00:00:00');
-                    const diffDays = Math.round((hoy - fechaT) / (1000 * 60 * 60 * 24)); const esAtrasada = diffDays > 0 && t.estado !== 'completada';
-
-                    if (t.estado !== 'completada') { if (esAtrasada) kpiAtrasadas++; else { if (diffDays >= -7 && diffDays <= 0) kpiVenceSemana++; if (diffDays >= -30 && diffDays <= 0) kpiVenceMes++; } }
-                    if (filtroEstado === 'pendientes' && t.estado === 'completada') return; if (filtroEstado === 'completadas' && t.estado !== 'completada') return; if (filtroEstado === 'atrasadas' && (!esAtrasada || t.estado === 'completada')) return;
-
-                    const normResp = normalizarTexto(t.responsable); const normNombre = normalizarTexto(t.nombre); const normCat = normalizarTexto(t.categoria);
-                    if (catFiltrada !== 'todas' && normCat !== normalizarTexto(catFiltrada)) return;
-                    if (usuarioFiltrado !== 'todos' && normResp !== normalizarTexto(usuarioFiltrado)) return;
-                    if (perFiltrado !== 'todas' && t.periodo !== perFiltrado) return;
-                    if (prioFiltrada !== 'todas' && (t.prioridad || 3) != prioFiltrada) return;
-                    if (textoBusqueda && !normNombre.includes(textoBusqueda) && !normResp.includes(textoBusqueda) && !normCat.includes(textoBusqueda)) return;
-
-                    if (t.estado === 'completada') {
-                        listas.historial += `<div class="task-item" style="opacity: 0.6; border-left-color: var(--success)"><div class="task-actions"><button class="icon-btn" onclick="eliminar('${t.id}')" title="Eliminar">🗑️</button></div><b style="text-decoration: line-through">${t.nombre}</b><div class="task-badges"><span class="badge" style="${getBadgeStyle(t.categoria)}">🏢 ${t.categoria}</span><span class="badge badge-user">👤 ${t.responsable}</span><span class="badge">Terminado: ${t.fecha}</span></div></div>`;
-                    } else {
-                        const colorScore = t.prioridad || 3; let borderColor = `var(--borde-${colorScore})`; let badgePlazo = '';
-                        if (diffDays > 0) { badgePlazo = `<span class="badge badge-delay">⚠️ Atrasada (${diffDays}d)</span>`; borderColor = 'var(--danger)'; } 
-                        else if (diffDays === 0) { badgePlazo = `<span class="badge badge-today">🔥 Vence Hoy</span>`; borderColor = 'var(--warning)'; } 
-                        else if (diffDays === -1) { badgePlazo = `<span class="badge badge-tomorrow">⚡ Vence Mañana</span>`; borderColor = 'var(--yellow)'; }
-
-                        const html = `<div class="task-item" draggable="true" ondragstart="drag(event)" id="${t.id}" style="border-left-color: ${borderColor}; background: var(--prioridad-${colorScore})"><div class="task-actions"><button class="icon-btn" onclick="completar('${t.id}')" title="Completar">✅</button><button class="icon-btn" onclick="cargarEdicion('${t.id}')" title="Editar">✏️</button><button class="icon-btn" onclick="eliminar('${t.id}')" title="Borrar">🗑️</button></div><b>${t.nombre}</b><div class="task-badges"><span class="badge" style="${getBadgeStyle(t.categoria)}">🏢 ${t.categoria}</span><span class="badge badge-user">👤 ${t.responsable}</span><span class="badge">📅 ${t.fecha.split('-').reverse().join('/')}</span><span class="badge">W${getISOWeek(fechaT)}</span>${badgePlazo}</div><div class="progress-container"><div class="progress-label"><span>Avance</span> <span id="progText-${t.id}">${t.progreso}%</span></div><input type="range" class="slider" min="0" max="100" step="10" value="${t.progreso}" oninput="document.getElementById('progText-${t.id}').innerText = this.value + '%'" onchange="guardarProgreso('${t.id}', this.value)"></div></div>`;
-                        if(listas[t.periodo] !== undefined) listas[t.periodo] += html; else listas.unica += html;
-                    }
+        // OPTIMIZACIÓN: Exportar a CSV/Excel
+        window.exportarCSV = function() {
+            let csvContent = "data:text/csv;charset=utf-8,Nivel,Estrategia/Accion,Horizonte,Responsable,Areas/KPI,Meta\n";
+            appData.despliegue.forEach(n1 => {
+                csvContent += `N1,"${n1.obj}","${fmtFecha(n1.horizonte)}","${n1.respo}","-","${n1.meta}"\n`;
+                n1.n2.forEach(n2 => {
+                    csvContent += `N2,"${n2.obj}","${fmtFecha(n2.horizonte)}","${n2.respo}","${n2.areas.join(' ')}","${n2.meta}"\n`;
+                    n2.n3.forEach(n3 => {
+                        csvContent += `N3,"${n3.obj}","${fmtFecha(n3.horizonte)}","${n3.respo}","${n3.kpi}","${n3.meta}"\n`;
+                    });
                 });
-
-                document.getElementById('list-unica').innerHTML = listas.unica; document.getElementById('list-diaria').innerHTML = listas.diaria;
-                document.getElementById('list-semanal').innerHTML = listas.semanal; document.getElementById('list-mensual').innerHTML = listas.mensual;
-                document.getElementById('list-historial').innerHTML = listas.historial;
-                document.getElementById('kpi-atrasadas').innerText = kpiAtrasadas; document.getElementById('kpi-vence-semana').innerText = kpiVenceSemana; document.getElementById('kpi-vence-mes').innerText = kpiVenceMes;
-                
-                actualizarFiltrosDinamicos(); if (document.getElementById('analyticsContainer').style.display === 'block') renderAnalytics();
-            } catch (err) { console.error("Error renderizando:", err); }
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "SAO_Matriz_Fumiscor.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            Toast.fire({ icon: 'success', title: 'Archivo descargado' });
         }
 
-        // ==========================================
-        // FUNCIONES CRUD
-        // ==========================================
-        function guardarProgreso(id, valor) { const t = tareas.find(x => x.id === id); if(t) { t.progreso = parseInt(valor); syncData(); } }
+        function fmtFecha(f) { if(!f) return '-'; let p = f.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
 
-        function guardarTarea() {
-            const nom = document.getElementById('taskName').value; const fec = document.getElementById('taskDate').value;
-            let resp = document.getElementById('taskUser').value.trim(); let cat = document.getElementById('taskCategory').value.trim();
-            if(!nom || !fec) return alert("Por favor, completa la descripción y la fecha.");
-            if(!resp) resp = "Sin asignar"; if(!cat) cat = "General";
-
-            const datos = {
-                nombre: nom, fecha: fec, responsable: resp, categoria: cat,
-                periodo: document.getElementById('taskPeriod').value, prioridad: document.getElementById('taskPriority').value,
-                estado: 'pendiente', progreso: idEditando ? undefined : 0, createdAt: idEditando ? undefined : new Date().toISOString(), id: idEditando || 'id' + Date.now()
-            };
-
-            if(idEditando) { const idx = tareas.findIndex(t => t.id === idEditando); if(idx !== -1) tareas[idx] = {...tareas[idx], ...datos}; idEditando = null; document.getElementById('btnSubmit').innerText = "+ AÑADIR"; } 
-            else { tareas.push(datos); }
-
-            document.getElementById('taskName').value = ''; if (currentMode !== 'personal') document.getElementById('taskUser').value = ''; document.getElementById('taskCategory').value = ''; syncData();
-            if (currentMode === 'personal') triggerRender(); 
-        }
-
-        function completar(id) {
-            const t = tareas.find(x => x.id === id); if(!t) return; t.fechaC = new Date().toISOString();
-            if (t.periodo === 'unica') { t.estado = 'completada'; t.progreso = 100; } 
-            else {
-                const copia = {...t, id: 'h'+Date.now(), estado: 'completada', progreso: 100}; tareas.push(copia);
-                let f = new Date(t.fecha + 'T00:00:00');
-                if(t.periodo==='diaria') f.setDate(f.getDate()+1); if(t.periodo==='semanal') f.setDate(f.getDate()+7); if(t.periodo==='mensual') f.setMonth(f.getMonth()+1);
-                t.fecha = f.toISOString().split('T')[0]; t.progreso = 0;
-            } syncData();
-            if (currentMode === 'personal') triggerRender();
-        }
-
-        function cargarEdicion(id) {
-            const t = tareas.find(x => x.id === id); if(!t) return;
-            document.getElementById('taskName').value = t.nombre; document.getElementById('taskUser').value = t.responsable !== 'Sin asignar' ? t.responsable : '';
-            document.getElementById('taskCategory').value = t.categoria !== 'General' ? t.categoria : ''; document.getElementById('taskDate').value = t.fecha;
-            document.getElementById('taskPeriod').value = t.periodo; document.getElementById('taskPriority').value = t.prioridad || 3;
-            idEditando = id; document.getElementById('btnSubmit').innerText = "💾 GUARDAR"; window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        function eliminar(id) { if(confirm("¿Seguro que quieres eliminar esta tarea?")) { tareas = tareas.filter(x => x.id !== id); syncData(); if(currentMode==='personal') triggerRender(); } }
-
-        function borrarTodo() {
-            const scope = currentMode === 'equipo' ? 'del equipo' : 'personales (privadas)';
-            if(confirm(`⚠️ ATENCIÓN: Se borrarán todas las tareas ${scope}.`)) {
-                if(confirm("¿ESTÁS COMPLETAMENTE SEGURO? Esta acción no se puede deshacer.")) {
-                    const pass = prompt("Escribe 'BORRAR' (en mayúsculas) para confirmar:");
-                    if(pass === 'BORRAR') { tareas = []; syncData(); alert(`Panel reiniciado con éxito.`); if(currentMode==='personal') triggerRender(); }
+        window.validarPin = async function() {
+            const pin = document.getElementById('input-pin').value.trim();
+            if(!pin) return;
+            const btn = document.getElementById('btn-login');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando...';
+            
+            try {
+                const docRef = doc(db, "accesos", pin);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    rolActual = data.rol;
+                    areaActual = data.area || 'ALL';
+                    iniciarApp();
+                } else {
+                    document.getElementById('login-error').classList.remove('d-none');
                 }
+            } catch (e) { alert("Error de red: " + e.message); }
+            btn.innerHTML = 'INGRESAR';
+        }
+
+        function iniciarApp() {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('app-main').style.display = 'flex';
+            
+            const rolesDict = { 'directorio': 'N1 - Directorio', 'gerencia': `N2 - Gerencia`, 'jefatura': `N3/N4 - Op.` };
+            document.getElementById('lbl-rol').innerText = rolesDict[rolActual] + (areaActual !== 'ALL' ? ` (${areaActual})` : '');
+            
+            onSnapshot(doc(db, "sao", "masterData"), (snapshot) => {
+                if (snapshot.exists()) {
+                    appData = snapshot.data();
+                    actualizarUI();
+                } else {
+                    appData = { config: { areas: ['LOGISTICA', 'FINANZAS', 'COMPRAS', 'SISTEMAS', 'COMERCIAL', 'RRHH', 'MTTO', 'CALIDAD', 'INGENIERIA'] }, identidad: { mision: "", vision: "", fortalezas: "", debilidades: "", oportunidades: "", amenazas: "" }, despliegue: [] };
+                    window.guardarDatos();
+                }
+            });
+        }
+
+        window.guardarDatos = async function(showToast = true) {
+            await setDoc(doc(db, "sao", "masterData"), appData);
+            if(showToast) Toast.fire({ icon: 'success', title: 'Sincronizado en la nube' });
+        }
+
+        function actualizarUI() {
+            aplicarPermisosGlobales();
+            cargarTextosUI();
+            actualizarFiltrosAreas();
+            
+            const fArea = document.getElementById('flt-matriz-area');
+            if(areaActual !== 'ALL') { fArea.value = areaActual; fArea.disabled = true; }
+            
+            window.renderMatriz();
+            window.chequearAlertas();
+            
+            const activeSec = document.querySelector('.section.active').id;
+            if(activeSec === 'sec-mapa') renderMapaEstrategico();
+            if(activeSec === 'sec-timeline') renderTimeline();
+            if(activeSec === 'sec-graficos') renderGraficos();
+        }
+
+        function aplicarPermisosGlobales() {
+            const isDir = (rolActual === 'directorio');
+            document.querySelectorAll('#sec-identidad textarea').forEach(el => el.disabled = !isDir);
+            document.querySelectorAll('.btn-save-identity, .btn-add-n1').forEach(btn => btn.style.display = isDir ? 'block' : 'none');
+            document.querySelector('.config-btn').style.display = isDir ? 'block' : 'none';
+        }
+
+        function cargarTextosUI() { 
+            if(!appData.identidad) return;
+            ['mision','vision','fortalezas','debilidades','oportunidades','amenazas'].forEach(k => {
+                const el = document.getElementById('val-'+k);
+                if(el) el.value = appData.identidad[k] || '';
+            });
+        }
+        window.guardarTextos = function() { 
+            ['mision','vision','fortalezas','debilidades','oportunidades','amenazas'].forEach(k => appData.identidad[k] = document.getElementById('val-'+k).value); 
+            window.guardarDatos();
+        }
+
+        window.limpiarFiltrosMatriz = function() {
+            document.getElementById('flt-matriz-nivel').value = '3';
+            if(areaActual === 'ALL') document.getElementById('flt-matriz-area').value = 'ALL';
+            document.getElementById('flt-matriz-text').value = '';
+            document.getElementById('flt-matriz-status').value = 'ALL';
+            window.renderMatriz();
+        }
+
+        window.actualizarFiltrosAreas = function() {
+            const sel = document.getElementById('flt-matriz-area');
+            let valActual = sel.value;
+            sel.innerHTML = '<option value="ALL">Todas</option>' + (appData.config?.areas || []).map(a => `<option value="${a}">${a}</option>`).join('');
+            sel.value = (valActual && (appData.config?.areas || []).includes(valActual)) ? valActual : 'ALL';
+            
+            const list = document.getElementById('lista-areas');
+            if(list) list.innerHTML = (appData.config?.areas || []).map((a,i) => `<span class="badge bg-secondary p-2 d-flex align-items-center gap-2 fs-6">${a} <i class="fas fa-times text-danger" style="cursor:pointer;" onclick="window.eliminarArea(${i})"></i></span>`).join('');
+        }
+
+        function evaluateFilters(item, level, parentAreas = [], n3Status = null) {
+            let fAre = document.getElementById('flt-matriz-area').value;
+            let fTxt = document.getElementById('flt-matriz-text').value.toLowerCase();
+            let fSta = document.getElementById('flt-matriz-status').value;
+            
+            let matchAre = fAre === 'ALL' || (level === 2 && item.areas && item.areas.includes(fAre)) || (level === 3 && parentAreas.includes(fAre));
+            let matchTxt = fTxt === '' || item.obj.toLowerCase().includes(fTxt) || (item.kpi && item.kpi.toLowerCase().includes(fTxt));
+            let matchSta = fSta === 'ALL' || (level === 3 && n3Status === fSta);
+            
+            return matchAre && matchTxt && matchSta;
+        }
+
+        window.renderMatriz = function() {
+            const tbody = document.getElementById('matriz-body'); tbody.innerHTML = '';
+            const maxNivel = parseInt(document.getElementById('flt-matriz-nivel').value);
+            
+            if(!appData.despliegue || appData.despliegue.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center p-5 text-muted">Aún no hay estrategias.</td></tr>'; return;
+            }
+            
+            appData.despliegue.forEach((n1, i1) => {
+                let n1DirectMatch = evaluateFilters(n1, 1);
+                let n1HasChild = false;
+                let htmlN1 = '';
+                let htmlChildren = '';
+
+                let btnAddN2 = (rolActual === 'directorio') ? `<button class="btn btn-sm btn-outline-secondary" onclick="window.crearN2(${i1})">+ N2</button>` : '';
+                let btnDelN1 = (rolActual === 'directorio') ? `<button class="btn btn-sm btn-danger" onclick="window.borrar(1, ${i1})"><i class="fas fa-trash"></i></button>` : '';
+
+                htmlN1 = `<tr class="row-n1"><td class="text-center"><span class="badge badge-n1">N1</span></td><td class="fw-bold">${n1.obj}</td><td><i class="far fa-calendar-alt text-primary"></i> ${fmtFecha(n1.horizonte)}</td><td>${n1.respo}</td><td colspan="2" class="text-info small">Meta Global: <strong>${n1.meta}</strong></td><td></td><td class="no-print"><div class="d-flex gap-1">${btnAddN2} ${btnDelN1}</div></td></tr>`;
+
+                if (maxNivel >= 2) {
+                    n1.n2.forEach((n2, i2) => {
+                        let n2DirectMatch = evaluateFilters(n2, 2);
+                        let n2HasChild = false;
+                        let htmlN2 = '';
+                        let htmlN3 = '';
+
+                        let areasHtml = (n2.areas || []).map(a => `<span class="area-tag">${a}</span>`).join('');
+                        let puedeEditarN2 = rolActual === 'directorio' || (rolActual === 'gerencia' && (n2.areas||[]).includes(areaActual)) || (rolActual === 'gerencia' && areaActual === 'ALL');
+                        
+                        let btnAddN3 = puedeEditarN2 ? `<button class="btn btn-sm btn-outline-success" onclick="window.crearN3(${i1}, ${i2})">+ KPI N3</button>` : '';
+                        let btnPDCA = (puedeEditarN2 || rolActual === 'jefatura') ? `<button class="btn btn-sm btn-info text-white" onclick="window.gestionarPDCA(${i1}, ${i2})">PDCA</button>` : '';
+                        let btnDelN2 = puedeEditarN2 ? `<button class="btn btn-sm btn-danger" onclick="window.borrar(2, ${i1}, ${i2})"><i class="fas fa-trash"></i></button>` : '';
+
+                        htmlN2 = `<tr class="row-n2"><td class="text-end"><span class="badge badge-n2">N2</span></td><td class="ps-3 border-start border-warning border-4">↳ ${n2.obj}</td><td><i class="far fa-calendar-alt text-warning"></i> ${fmtFecha(n2.horizonte)}</td><td>${n2.respo}</td><td>${areasHtml||'-'}</td><td class="text-muted small">Meta Área: ${n2.meta}</td><td></td><td class="no-print"><div class="d-flex gap-1">${btnAddN3} ${btnPDCA} ${btnDelN2}</div></td></tr>`;
+
+                        if (maxNivel >= 3) {
+                            n2.n3.forEach((n3, i3) => {
+                                let pct = calcularYTDNum(n3);
+                                let cumpleMeta = false;
+                                let n3Status = 'NODATA';
+                                if (pct !== null) {
+                                    cumpleMeta = n3.polaridad === 'menor' ? (pct <= n3.meta) : (pct >= n3.meta);
+                                    n3Status = cumpleMeta ? 'OK' : 'ALERT';
+                                }
+                                
+                                if (evaluateFilters(n3, 3, n2.areas, n3Status)) {
+                                    n2HasChild = true;
+                                    n1HasChild = true;
+                                    
+                                    let YTDHtml = pct !== null ? `<span class="${cumpleMeta ? 'text-success' : 'text-danger'} fw-bold">${pct}</span>` : '-';
+                                    let puedeEditarN3 = puedeEditarN2 || (rolActual === 'jefatura' && (n2.areas||[]).includes(areaActual));
+                                    
+                                    let btnData = puedeEditarN3 ? `<button class="btn btn-sm btn-success" onclick="window.abrirModalDatos(${i1}, ${i2}, ${i3})"><i class="fas fa-calendar-alt"></i></button>` : '';
+                                    let btnDelN3 = puedeEditarN3 ? `<button class="btn btn-sm btn-danger" onclick="window.borrar(3, ${i1}, ${i2}, ${i3})"><i class="fas fa-trash"></i></button>` : '';
+
+                                    htmlN3 += `<tr class="row-n3"><td class="text-end"><span class="badge badge-n3">N3</span></td><td class="ps-5 border-start border-success border-4"><i class="fas fa-caret-right text-muted"></i> ${n3.obj}</td><td><i class="far fa-calendar-alt text-success"></i> ${fmtFecha(n3.horizonte)}</td><td>${n3.respo}</td><td class="text-info"><strong>${n3.kpi}</strong></td><td class="text-center fw-bold">${n3.meta}</td><td class="text-center fs-6">${YTDHtml}</td><td class="no-print"><div class="d-flex gap-1">${btnData} ${btnDelN3}</div></td></tr>`;
+                                }
+                            });
+                        }
+
+                        if (n2DirectMatch || n2HasChild || (maxNivel < 3 && n1DirectMatch)) {
+                            n1HasChild = true;
+                            htmlChildren += htmlN2 + htmlN3;
+                        }
+                    });
+                }
+
+                if (n1DirectMatch || n1HasChild) {
+                    tbody.innerHTML += htmlN1 + htmlChildren;
+                }
+            });
+        }
+
+        window.crearN1 = async function() {
+            const { value: f } = await Swal.fire({ title: 'Crear N1', html: '<input id="s-obj" class="swal2-input" placeholder="Objetivo"><input id="s-res" class="swal2-input" placeholder="Responsable"><input id="s-met" class="swal2-input" placeholder="Meta Gral"><label class="d-block text-start ms-4 mt-2 mb-0 small">Horizonte:</label><input type="date" id="s-dat" class="swal2-input mt-0">', preConfirm: () => ({ obj: document.getElementById('s-obj').value, respo: document.getElementById('s-res').value, meta: document.getElementById('s-met').value, horizonte: document.getElementById('s-dat').value, n2: [] }) });
+            if(f && f.obj) { appData.despliegue.push(f); window.guardarDatos(); }
+        }
+        
+        window.crearN2 = async function(i1) {
+            let chk = (appData.config?.areas || []).map(a => `<div class="form-check form-check-inline" style="width:110px;text-align:left;"><input class="form-check-input a-chk" type="checkbox" value="${a}" id="c-${a}"><label class="form-check-label small" for="c-${a}">${a}</label></div>`).join('');
+            const { value: f } = await Swal.fire({ title: 'Estrategia N2', width: '600px', html: `<input id="s-obj" class="form-control mb-2" placeholder="Estrategia"><div class="row mb-2"><div class="col"><input id="s-res" class="form-control" placeholder="Área/Piloto"></div><div class="col"><input id="s-met" class="form-control" placeholder="Meta"></div></div><div class="row mb-3"><div class="col"><label class="small text-muted d-block text-start">Horizonte:</label><input type="date" id="s-dat" class="form-control"></div></div><div class="text-start border border-secondary p-2"><label class="fw-bold mb-2 d-block small">Áreas Involucradas:</label>${chk}</div>`, preConfirm: () => ({ obj: document.getElementById('s-obj').value, respo: document.getElementById('s-res').value, meta: document.getElementById('s-met').value, horizonte: document.getElementById('s-dat').value, areas: Array.from(document.querySelectorAll('.a-chk:checked')).map(c => c.value), n3: [], pdca: [] }) });
+            if(f && f.obj) { appData.despliegue[i1].n2.push(f); window.guardarDatos(); }
+        }
+
+        window.crearN3 = async function(i1, i2) {
+            const { value: f } = await Swal.fire({ title: 'KPI N3', html: '<input id="s-obj" class="swal2-input" placeholder="Acción / Iniciativa"><input id="s-res" class="swal2-input" placeholder="Responsable"><input id="s-kpi" class="swal2-input" placeholder="Nombre KPI"><div class="row px-4 mt-2"><div class="col-6"><input id="s-met" type="number" step="0.01" class="form-control" placeholder="Meta Numérica"></div><div class="col-6"><input type="date" id="s-dat" class="form-control"></div></div><div class="row px-4 mt-3 text-start"><div class="col-6"><label class="small text-muted mb-1">Cálculo YTD:</label><select id="s-tipo" class="form-select"><option value="promedio">Promedio</option><option value="suma">Acumulado</option></select></div><div class="col-6"><label class="small text-muted mb-1">Polaridad:</label><select id="s-polaridad" class="form-select"><option value="mayor">Mayor es mejor (▲)</option><option value="menor">Menor es mejor (▼)</option></select></div></div>', preConfirm: () => ({ obj: document.getElementById('s-obj').value, respo: document.getElementById('s-res').value, kpi: document.getElementById('s-kpi').value, meta: parseFloat(document.getElementById('s-met').value), horizonte: document.getElementById('s-dat').value, tipo: document.getElementById('s-tipo').value || 'promedio', polaridad: document.getElementById('s-polaridad').value || 'mayor', datos: {} }) });
+            if(f && f.obj && !isNaN(f.meta)) { appData.despliegue[i1].n2[i2].n3.push(f); window.guardarDatos(); }
+        }
+
+        window.borrar = function(nv, i1, i2, i3) {
+            if(confirm('¿Seguro que deseas eliminar este elemento?')) { 
+                if(nv===1) appData.despliegue.splice(i1,1); 
+                else if(nv===2) appData.despliegue[i1].n2.splice(i2,1); 
+                else if(nv===3) appData.despliegue[i1].n2[i2].n3.splice(i3,1); 
+                window.guardarDatos(false); 
             }
         }
 
-        function organizarTareas() { tareas.sort((a, b) => { const dateDiff = new Date(a.fecha) - new Date(b.fecha); if (dateDiff !== 0) return dateDiff; const prioDiff = (b.prioridad || 0) - (a.prioridad || 0); if (prioDiff !== 0) return prioDiff; return (a.progreso || 0) - (b.progreso || 0); }); syncData(); if(currentMode==='personal') triggerRender(); }
+        function calcularYTDNum(n3) {
+            if(!n3.datos) return null;
+            let vals = [];
+            Object.values(n3.datos).forEach(yObj => { Object.values(yObj).forEach(v => { if(v !== null && v !== "") vals.push(parseFloat(v)); }); });
+            if(vals.length === 0) return null;
+            let sumaTotal = vals.reduce((a, b) => a + b, 0);
+            let resultado = n3.tipo === 'suma' ? sumaTotal : (sumaTotal / vals.length);
+            return parseFloat(resultado.toFixed(2));
+        }
 
-        // ==========================================
-        // UTILIDADES EXTRAS (Export, Drag, Color, etc)
-        // ==========================================
-        function initDragToScroll() { const slider = document.getElementById('timelineContainer'); let isDown = false; let startX; let scrollLeft; slider.addEventListener('mousedown', (e) => { isDown = true; slider.style.cursor = 'grabbing'; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; }); slider.addEventListener('mouseleave', () => { isDown = false; slider.style.cursor = 'grab'; }); slider.addEventListener('mouseup', () => { isDown = false; slider.style.cursor = 'grab'; }); slider.addEventListener('mousemove', (e) => { if (!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2; slider.scrollLeft = scrollLeft - walk; }); }
-        function scrollToToday() { const slider = document.getElementById('timelineContainer'); const todayEl = document.getElementById('timeline-today'); if (todayEl && slider) { const scrollPos = todayEl.offsetLeft - (slider.clientWidth / 2) + (todayEl.clientWidth / 2); slider.scrollTo({ left: scrollPos, behavior: 'smooth' }); } else { alert("¡No hay tareas programadas para el día de hoy con los filtros actuales!"); } }
-        function toggleAnalytics() { const cont = document.getElementById('analyticsContainer'); cont.style.display = cont.style.display === 'block' ? 'none' : 'block'; if (cont.style.display === 'block') { document.getElementById('analytics-mode-label').innerText = currentMode === 'equipo' ? 'Equipo' : 'Personal'; renderAnalytics(); } }
-        function getColorHexForText(text) { let hash = 0; for (let i = 0; i < text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash); return colorPalette[Math.abs(hash) % colorPalette.length].color; }
-        function renderAnalytics() { const pendientes = tareas.filter(t => t.estado !== 'completada'); const userCounts = {}; let maxUserTasks = 0; pendientes.forEach(t => { let u = t.responsable && t.responsable !== 'Sin asignar' ? t.responsable : 'Sin asignar'; userCounts[u] = (userCounts[u] || 0) + 1; if (userCounts[u] > maxUserTasks) maxUserTasks = userCounts[u]; }); let barsHtml = ''; if (Object.keys(userCounts).length === 0) barsHtml = '<div style="color:#94a3b8; text-align:center; width:100%;">No hay tareas activas</div>'; else { for(let u in userCounts) { let pct = maxUserTasks > 0 ? (userCounts[u] / maxUserTasks) * 100 : 0; barsHtml += `<div class="bar-col"><div class="bar" style="height: ${pct}%;"><span class="bar-val">${userCounts[u]}</span></div><span class="bar-label" title="${u}">${u}</span></div>`; } } document.getElementById('barChartUser').innerHTML = barsHtml; const catCounts = {}; let totalCats = pendientes.length; pendientes.forEach(t => { let c = t.categoria || 'General'; catCounts[c] = (catCounts[c] || 0) + 1; }); let gradientStr = []; let legendHtml = ''; let currentPct = 0; if (totalCats === 0) { document.getElementById('pieChartArea').style.background = '#1e293b'; document.getElementById('legendArea').innerHTML = '<span style="color:#94a3b8;">Sin datos</span>'; } else { for(let c in catCounts) { let slicePct = (catCounts[c] / totalCats) * 100; let color = getColorHexForText(c); gradientStr.push(`${color} ${currentPct}% ${currentPct + slicePct}%`); legendHtml += `<div class="legend-item"><span class="legend-dot" style="background:${color}"></span>${c} <b>(${catCounts[c]})</b></div>`; currentPct += slicePct; } document.getElementById('pieChartArea').style.background = `conic-gradient(${gradientStr.join(', ')})`; document.getElementById('legendArea').innerHTML = legendHtml; } }
-        function getBadgeStyle(text) { let hash = 0; for (let i = 0; i < text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash); const c = colorPalette[Math.abs(hash) % colorPalette.length]; return `background: ${c.bg}; color: ${c.color}; border: 1px solid ${c.border};`; }
-        function toggleColumna(columnaId) { const tablero = document.getElementById(columnaId); const boton = document.getElementById('btn-col-' + columnaId); if (tablero.style.display === 'none') { tablero.style.display = 'block'; boton.classList.remove('off'); boton.innerHTML = '✅ ' + boton.innerText.replace('❌ ', ''); } else { tablero.style.display = 'none'; boton.classList.add('off'); boton.innerHTML = '❌ ' + boton.innerText.replace('✅ ', ''); } }
-        function getISOWeek(date) { try { if (!date || isNaN(date.getTime())) return "--"; const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())); const dayNum = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() + 4 - dayNum); const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1)); return Math.ceil((((d - yearStart) / 86400000) + 1)/7); } catch(e) { return "--"; } }
-        function normalizarTexto(texto) { return (!texto) ? "" : texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(); }
-        function debouncedSearch() { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { triggerRender(); }, 300); }
-        function actualizarFiltrosDinamicos() { const selectUser = document.getElementById('filterUser'); const valorActualUser = selectUser.value; const usuariosMap = new Map(); const selectCat = document.getElementById('filterCategory'); const datalistCat = document.getElementById('categoryList'); const valorActualCat = selectCat.value; const catMap = new Map(); tareas.forEach(t => { if(t.responsable && t.responsable !== 'Sin asignar') { const original = t.responsable.trim(); const normalizado = normalizarTexto(original); if(!usuariosMap.has(normalizado)) usuariosMap.set(normalizado, original); } if(t.categoria && t.categoria !== 'General') { const original = t.categoria.trim(); const normalizado = normalizarTexto(original); if(!catMap.has(normalizado)) catMap.set(normalizado, original); } }); let htmlU = `<option value="todos">👤 Todos los responsables</option>`; if(tareas.some(t => !t.responsable || t.responsable === 'Sin asignar')) htmlU += `<option value="sin asignar">👤 Sin asignar</option>`; Array.from(usuariosMap.entries()).sort((a,b) => a[1].localeCompare(b[1])).forEach(([norm, orig]) => htmlU += `<option value="${norm}">${orig}</option>`); selectUser.innerHTML = htmlU; if(Array.from(selectUser.options).some(opt => opt.value === valorActualUser)) selectUser.value = valorActualUser; let htmlC = `<option value="todas">🏢 Todas las Áreas</option>`; if(tareas.some(t => !t.categoria || t.categoria === 'General')) htmlC += `<option value="general">🏢 General</option>`; let htmlDatalist = ''; Array.from(catMap.entries()).sort((a,b) => a[1].localeCompare(b[1])).forEach(([norm, orig]) => { htmlC += `<option value="${norm}">${orig}</option>`; htmlDatalist += `<option value="${orig}">`; }); selectCat.innerHTML = htmlC; if(Array.from(selectCat.options).some(opt => opt.value === valorActualCat)) selectCat.value = valorActualCat; datalistCat.innerHTML = htmlDatalist; }
-        function exportarCSV() { let csv = "Tarea,Categoria,Responsable,Fecha Limite,Periodo,Estado,Progreso %,Fecha Creacion\n"; tareas.forEach(t => { let nombreLimpio = t.nombre.replace(/"/g, '""').replace(/\n/g, ' '); let creado = t.createdAt || 'Sin registro antiguo'; csv += `"${nombreLimpio}","${t.categoria || 'General'}","${t.responsable || 'Sin asignar'}","${t.fecha}","${t.periodo}","${t.estado}","${t.progreso || 0}","${creado}"\n`; }); const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: "text/csv;charset=utf-8;" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `Respaldo_Tareas_${activeDepartment}_${currentMode}.csv`; a.click(); }
-        function importarCSV(e) { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(evt) { try { const lineas = evt.target.result.split('\n'); let nuevasTareas = []; for(let i=1; i<lineas.length; i++) { let linea = lineas[i].trim(); if(!linea) continue; let row = linea.substring(1, linea.length - 1).split('","'); if(row.length >= 7) { let tieneCategoria = row.length >= 8; nuevasTareas.push({ id: 'id' + Date.now() + Math.random(), nombre: row[0].replace(/""/g, '"'), categoria: tieneCategoria ? row[1] : 'General', responsable: tieneCategoria ? row[2] : row[1], fecha: tieneCategoria ? row[3] : row[2], periodo: tieneCategoria ? row[4] : row[3], estado: tieneCategoria ? row[5] : row[4], progreso: parseInt(tieneCategoria ? row[6] : row[5]) || 0, createdAt: (tieneCategoria ? row[7] : row[6]) || new Date().toISOString(), prioridad: 3 }); } } if(nuevasTareas.length > 0) { if(confirm(`Estás en el departamento ${activeDepartment.toUpperCase()}. Se encontraron ${nuevasTareas.length} tareas. ¿Quieres reemplazar el tablero actual (Aceptar) o sumarlas a las que ya tienes (Cancelar)?`)) { tareas = nuevasTareas; } else { tareas = tareas.concat(nuevasTareas); } syncData(); if(currentMode==='personal') triggerRender(); alert("¡Respaldo cargado con éxito!"); } else { alert("El archivo parece estar vacío o no es el formato correcto."); } } catch(error) { alert("Hubo un error al leer el archivo. Verifica que sea el Excel de respaldo correcto."); } e.target.value = ''; }; reader.readAsText(file); }
-        function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.style.borderColor = "var(--accent)"; }
-        function dragLeave(ev) { ev.currentTarget.style.borderColor = "#334155"; }
-        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
-        function drop(ev) { ev.preventDefault(); ev.currentTarget.style.borderColor = "#334155"; const id = ev.dataTransfer.getData("text"); const t = tareas.find(x => x.id === id); if(t && t.estado !== 'completada') { t.periodo = ev.currentTarget.id; syncData(); if(currentMode==='personal') triggerRender(); } }
+        window.chequearAlertas = function() {
+            let vencidos = 0; let nKpis = 0; let nPdca = 0;
+            let hoy = new Date().toISOString().split('T')[0];
+            const cont = document.getElementById('pdca-container'); if(!cont) return;
+            cont.innerHTML = '';
+
+            appData.despliegue.forEach(n1 => n1.n2.forEach(n2 => {
+                nKpis += n2.n3.length; nPdca += n2.pdca ? n2.pdca.length : 0;
+                if(n2.pdca && n2.pdca.length > 0) {
+                    let lis = n2.pdca.map(p => {
+                        let isLate = (p.date && p.date < hoy && p.fase !== 'A');
+                        if(isLate) vencidos++;
+                        return `<li class="list-group-item d-flex justify-content-between align-items-center small ${isLate ? 'bg-danger text-white' : 'bg-transparent'} border-secondary"><div><strong>${p.act}</strong><br><span>${p.resp} | <i class="fas fa-calendar"></i> ${fmtFecha(p.date)}</span></div><span class="badge ${p.fase==='A' ? 'bg-success' : 'bg-dark border'}">${p.fase}</span></li>`;
+                    }).join('');
+                    cont.innerHTML += `<div class="col-md-6"><div class="card h-100 border-info"><div class="card-header bg-transparent fw-bold text-info"><i class="fas fa-tasks"></i> ${n2.obj}</div><ul class="list-group list-group-flush">${lis}</ul></div></div>`;
+                }
+            }));
+
+            document.getElementById('notif-badge').innerText = vencidos;
+            document.getElementById('notif-badge').style.display = vencidos > 0 ? 'inline' : 'none';
+            document.getElementById('alert-banner').classList.toggle('d-none', vencidos === 0);
+        }
+
+        window.gestionarPDCA = async function(i1, i2) {
+            let n2 = appData.despliegue[i1].n2[i2];
+            if(!n2.pdca) n2.pdca = [];
+            const { value: f } = await Swal.fire({ title: 'Añadir PDCA', html: '<input id="p-act" class="swal2-input" placeholder="Acción"><input id="p-res" class="swal2-input" placeholder="Resp."><input type="date" id="p-dat" class="swal2-input"><select id="p-fas" class="swal2-select"><option value="P">P - Plan</option><option value="D">D - Do</option><option value="C">C - Check</option><option value="A">A - Act</option></select>', preConfirm: () => ({ act: document.getElementById('p-act').value, resp: document.getElementById('p-res').value, date: document.getElementById('p-dat').value, fase: document.getElementById('p-fas').value }) });
+            if(f && f.act) { n2.pdca.push(f); window.guardarDatos(); }
+        }
+
+        window.abrirModalDatos = function(i1, i2, i3) {
+            modalIndices = { i1, i2, i3 }; let n3 = appData.despliegue[i1].n2[i2].n3[i3]; if(!n3.datos) n3.datos = {};
+            document.getElementById('modal-kpi-name').innerText = n3.kpi; document.getElementById('modal-kpi-target').innerText = n3.meta;
+            let sy = document.getElementById('modal-year-select'); sy.innerHTML = '';
+            for(let y=2024; y<=2030; y++) sy.innerHTML += `<option value="${y}" ${y===new Date().getFullYear()?'selected':''}>${y}</option>`;
+            window.cargarGrillaMeses(); 
+            new bootstrap.Modal(document.getElementById('modalDatos')).show();
+        }
+
+        window.cargarGrillaMeses = function() {
+            let n3 = appData.despliegue[modalIndices.i1].n2[modalIndices.i2].n3[modalIndices.i3]; let anio = document.getElementById('modal-year-select').value;
+            if(!n3.datos[anio]) n3.datos[anio] = Object.fromEntries(MESES_KEY.map(m=>[m,""]));
+            document.getElementById('modal-grid-meses').innerHTML = MESES_KEY.map(m => `<div class="col-3 mb-3"><label class="form-label text-uppercase small text-muted fw-bold">${m}</label><input type="number" step="0.01" id="mdl-${m}" class="form-control" value="${n3.datos[anio][m] !== "" ? n3.datos[anio][m] : ''}"></div>`).join('');
+        }
+
+        window.guardarDatosMeses = function() {
+            let n3 = appData.despliegue[modalIndices.i1].n2[modalIndices.i2].n3[modalIndices.i3]; let anio = document.getElementById('modal-year-select').value;
+            MESES_KEY.forEach(m => { let v = document.getElementById('mdl-'+m).value; n3.datos[anio][m] = v!=="" ? parseFloat(v) : ""; });
+            window.guardarDatos(); 
+            bootstrap.Modal.getInstance(document.getElementById('modalDatos')).hide();
+        }
+
+        window.navTab = function(id, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active'); el.classList.add('active');
+            actualizarUI();
+        }
+
+        window.cargarDatosDemo = function() {
+            appData = {
+                config: { areas: ['LOGISTICA', 'FINANZAS', 'COMPRAS', 'SISTEMAS', 'COMERCIAL', 'RRHH', 'MTTO', 'CALIDAD', 'INGENIERIA'] },
+                identidad: { 
+                    mision: "Proveer soluciones metalmecánicas de excelencia, garantizando la satisfacción de nuestros clientes con rigor y mejora continua.", 
+                    vision: "Ser líderes en la región para 2026 mediante la innovación tecnológica y el desarrollo de nuestro capital humano.", 
+                    fortalezas: "Personal altamente capacitado\nCertificaciones ISO al día", debilidades: "Tiempos de setup mejorables\nDependencia de insumos importados", 
+                    oportunidades: "Nuevos mercados de exportación\nAutomatización de líneas", amenazas: "Volatilidad cambiaria\nNuevas regulaciones ambientales" 
+                },
+                despliegue: [
+                    {
+                        obj: "Aumentar Rentabilidad Global", respo: "Directorio", meta: "15%", horizonte: "2026-12-31",
+                        n2: [{
+                            obj: "Reducir OPEX Energético", respo: "Gerencia", meta: "5%", horizonte: "2026-10-30", areas: ["FINANZAS", "MTTO"], 
+                            pdca: [{act: "Auditoría de fugas", resp: "MTTO", date: "2026-03-15", fase: "P"}, {act: "Cotizar luces LED", resp: "Compras", date: "2026-04-10", fase: "D"}],
+                            n3: [{ obj: "Reducir consumo KW", respo: "Jefe MTTO", kpi: "Consumo KW/h", meta: 100, horizonte: "2026-06-30", tipo: "promedio", polaridad: "menor", datos: { "2026": { ene: 120, feb: 115, mar: 105, abr: 98, may: 95 } } }]
+                        }]
+                    },
+                    {
+                        obj: "Calidad Cero Defectos", respo: "Directorio", meta: "0 PPM", horizonte: "2026-12-31",
+                        n2: [{
+                            obj: "Asegurar Calidad en Línea", respo: "Ingeniería", meta: "< 1% Scrap", horizonte: "2026-12-01", areas: ["CALIDAD", "INGENIERIA"], pdca: [],
+                            n3: [{ obj: "Control de Scrap", respo: "Líder", kpi: "% Scrap", meta: 0.8, horizonte: "2026-12-01", tipo: "promedio", polaridad: "menor", datos: { "2026": { ene: 1.5, feb: 1.2, mar: 1.0, abr: 0.9, may: 0.85 } } }]
+                        }]
+                    }
+                ]
+            };
+            window.guardarDatos();
+        }
+
+        function renderMapaEstrategico() {
+            const cont = document.getElementById('mapa-container'); cont.innerHTML = '';
+            appData.despliegue.forEach(n1 => {
+                let n2HTML = '';
+                n1.n2.forEach(n2 => {
+                    let n3HTML = '';
+                    n2.n3.forEach(n3 => {
+                        let pct = calcularYTDNum(n3);
+                        let colorTexto = 'text-muted';
+                        if (pct !== null) { let cumpleMeta = n3.polaridad === 'menor' ? (pct <= n3.meta) : (pct >= n3.meta); colorTexto = cumpleMeta ? 'text-success' : 'text-danger'; }
+                        n3HTML += `<div class="card p-2 border-success" style="min-width: 200px; max-width: 240px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><div class="d-flex justify-content-between align-items-center mb-1"><span class="badge bg-success" style="font-size: 0.6rem;">N3</span><span class="small fw-bold ${colorTexto}">${pct !== null ? pct : 'S/D'} / ${n3.meta}</span></div><div class="small fw-bold text-truncate" title="${n3.obj}">${n3.obj}</div><div class="text-info" style="font-size: 0.7rem;"><i class="fas fa-tachometer-alt"></i> KPI: ${n3.kpi}</div></div>`;
+                    });
+                    let n3Wrapper = n3HTML ? `<div class="ps-3 border-start border-success ms-3 mt-3 d-flex flex-wrap gap-2">${n3HTML}</div>` : '';
+                    n2HTML += `<div class="mb-3 p-3 border rounded border-secondary" style="background: rgba(245, 158, 11, 0.05);"><div class="d-flex justify-content-between align-items-start"><h6 class="text-warning mb-0"><span class="badge bg-warning text-dark me-1">N2</span> ${n2.obj}</h6><span class="badge bg-secondary" style="font-size:0.65rem;">${n2.areas.join(', ')}</span></div><div class="text-muted small mt-1"><i class="fas fa-user-tie"></i> Resp: ${n2.respo}</div>${n3Wrapper}</div>`;
+                });
+                let n2Wrapper = n2HTML ? `<div class="ps-3 border-start border-warning ms-3 mt-3">${n2HTML}</div>` : '';
+                cont.innerHTML += `<div class="mb-4 p-3 border rounded shadow-sm border-secondary card"><h5 class="text-primary mb-0"><span class="badge bg-primary me-2">N1</span>${n1.obj}</h5><div class="text-muted small mt-1"><i class="fas fa-bullseye"></i> Meta Global: ${n1.meta}</div>${n2Wrapper}</div>`;
+            });
+        }
+
+        function renderTimeline() {
+            const cont = document.getElementById('roadmap-container'); cont.innerHTML = '';
+            let flat = [];
+            appData.despliegue.forEach(n1 => {
+                if(n1.horizonte) flat.push({ n: 1, obj: n1.obj, r: n1.respo, d: n1.horizonte, a: [], p: 'Estrategia N1' });
+                n1.n2.forEach(n2 => {
+                    if(n2.horizonte) flat.push({ n: 2, obj: n2.obj, r: n2.respo, d: n2.horizonte, a: n2.areas, p: '↳ Sub. de: ' + n1.obj });
+                    n2.n3.forEach(n3 => { if(n3.horizonte) flat.push({ n: 3, obj: n3.obj, r: n3.respo, d: n3.horizonte, a: n2.areas, p: '↳ Sub. de: ' + n2.obj }); });
+                });
+            });
+            let grp = {}; flat.forEach(i => { let ym = i.d.substring(0,7); if(!grp[ym]) grp[ym] = []; grp[ym].push(i); });
+            Object.keys(grp).sort().forEach(ym => {
+                let [y, m] = ym.split('-'); let title = MESES_NOM[parseInt(m)-1] + ' ' + y;
+                let n1Cards = grp[ym].filter(i => i.n === 1).map(i => `<div class="roadmap-card r-n1"><div class="d-flex justify-content-between mb-1"><span class="badge badge-n1">N1</span><span class="small text-muted">${fmtFecha(i.d)}</span></div><h6 class="fw-bold mb-1">${i.obj}</h6><p class="small text-muted mb-0">${i.p}</p></div>`).join('');
+                let n2Cards = grp[ym].filter(i => i.n === 2).map(i => `<div class="roadmap-card r-n2"><div class="d-flex justify-content-between mb-1"><span class="badge badge-n2">N2</span><span class="small text-muted">${fmtFecha(i.d)}</span></div><h6 class="fw-bold mb-1">${i.obj}</h6><p class="small text-muted mb-0">${i.p}</p></div>`).join('');
+                let n3Cards = grp[ym].filter(i => i.n === 3).map(i => `<div class="roadmap-card r-n3"><div class="d-flex justify-content-between mb-1"><span class="badge badge-n3">N3</span><span class="small text-muted">${fmtFecha(i.d)}</span></div><h6 class="fw-bold mb-1">${i.obj}</h6><p class="small text-muted mb-0">${i.p}</p></div>`).join('');
+                cont.innerHTML += `<div class="roadmap-column"><div class="roadmap-header"><span class="text-info">${title}</span></div><div class="roadmap-body"><div class="roadmap-tier tier-n1"><div class="tier-label">Nivel 1 - Directorio</div>${n1Cards || '<div class="text-muted small fst-italic">Sin objetivos</div>'}</div><div class="roadmap-tier tier-n2"><div class="tier-label">Nivel 2 - Gerencias</div>${n2Cards || '<div class="text-muted small fst-italic">Sin estrategias</div>'}</div><div class="roadmap-tier tier-n3"><div class="tier-label">Nivel 3 - Operativo</div>${n3Cards || '<div class="text-muted small fst-italic">Sin KPIs</div>'}</div></div></div>`;
+            });
+        }
+
+        function renderGraficos() {
+            const cont = document.getElementById('dashboard-container'); cont.innerHTML = '';
+            charts.forEach(c => c.destroy()); charts = [];
+            if(radarChartInstance) { radarChartInstance.destroy(); radarChartInstance = null; }
+
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim();
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim();
+
+            let radarLabels = []; let radarData = [];
+            appData.despliegue.forEach(n1 => {
+                let kpiPcts = [];
+                n1.n2.forEach(n2 => { n2.n3.forEach(n3 => { let ytd = calcularYTDNum(n3); if(ytd !== null) { let target = parseFloat(n3.meta) || 1; let pct = (ytd / target) * 100; kpiPcts.push(pct > 100 ? 100 : pct); } }); });
+                radarLabels.push(n1.obj.substring(0, 20));
+                radarData.push(kpiPcts.length > 0 ? (kpiPcts.reduce((a,b)=>a+b,0) / kpiPcts.length).toFixed(1) : 0);
+            });
+
+            if(radarLabels.length > 0 && document.getElementById('radar-n1')) {
+                radarChartInstance = new Chart(document.getElementById('radar-n1').getContext('2d'), { type: 'radar', data: { labels: radarLabels, datasets: [{ label: '% Cumplimiento', data: radarData, backgroundColor: 'rgba(59, 130, 246, 0.2)', borderColor: '#3b82f6', pointBackgroundColor: '#ef4444', borderWidth: 2 }] }, options: { scales: { r: { angleLines: {color: gridColor}, grid:{color:gridColor}, pointLabels:{color:textColor}, ticks:{color:textColor, backdropColor:'transparent', min: 0, max: 100 } } }, responsive: true, maintainAspectRatio: false } });
+            }
+
+            appData.despliegue.forEach(n1 => n1.n2.forEach(n2 => n2.n3.forEach(n3 => {
+                if(!n3.datos) return;
+                let lbls = [], dats = [];
+                Object.keys(n3.datos).sort().forEach(y => MESES_KEY.forEach(m => { let v = n3.datos[y][m]; if(v!=="" && v!==null) { lbls.push(m.toUpperCase() + ' ' + y.slice(-2)); dats.push(v); } }));
+                if(dats.length > 0) {
+                    let id = 'c-' + Math.random().toString(36).substr(2,9);
+                    cont.innerHTML += `<div class="col-md-6"><div class="card h-100 p-3"><h6 class="text-success">${n3.kpi}</h6><div style="height:250px;"><canvas id="${id}"></canvas></div></div></div>`;
+                    setTimeout(() => { charts.push(new Chart(document.getElementById(id).getContext('2d'), { type: 'line', data: { labels: lbls, datasets: [{ label: 'Real', data: dats, borderColor: '#10b981', fill: false, tension: 0.2 }, { label: 'Meta', data: new Array(lbls.length).fill(n3.meta), borderColor: '#ef4444', borderDash: [5,5] }] }, options: { scales:{ x:{ticks:{color:textColor}, grid:{color:gridColor}}, y:{ticks:{color:textColor}, grid:{color:gridColor}} }, responsive: true, maintainAspectRatio: false, plugins:{legend:{labels:{color:textColor}}} } })); }, 100);
+                }
+            })));
+        }
+
+        window.analisisIA = function() {
+            document.getElementById('ai-summary').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando Rigor SAO...';
+            setTimeout(() => {
+                document.getElementById('ai-summary').innerHTML = `<b>Recomendación IA:</b> Se detectaron ${document.getElementById('notif-badge').innerText} alertas vencidas. Se sugiere convocar una reunión QRQC urgente para revisar los PDCA en estado rojo.`;
+                document.getElementById('ai-summary').classList.add('text-main');
+            }, 1500);
+        }
+
+        window.cerrarSesion = function() { window.location.reload(); }
+        window.agregarArea = function() { let v = document.getElementById('nueva-area').value.toUpperCase(); if(v){appData.config.areas.push(v); window.guardarDatos();} }
+        window.eliminarArea = function(i) { appData.config.areas.splice(i,1); window.guardarDatos(); }
+
     </script>
 </body>
 </html>
