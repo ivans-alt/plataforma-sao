@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma SAO | Gestión Estratégica Cloud</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet" id="swal-theme">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        /* MODO OSCURO (Por defecto) */
+        :root {
+            --bg-base: #0f172a; 
+            --bg-surface: #1e293b; 
+            --bg-hover: #334155;
+            --accent: #ef4444; 
+            --n1-color: #3b82f6; 
+            --n2-color: #f59e0b; 
+            --n3-color: #10b981; 
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        /* MODO CLARO (Nueva optimización) */
+        [data-bs-theme="light"] {
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-hover: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #cbd5e1;
+        }
+
+        body { background-color: var(--bg-base); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
+        
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-base); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: var(--bg-surface); padding: 40px; border-radius: 12px; text-align: center; max-width: 450px; width: 90%; border-top: 5px solid var(--n1-color); box-shadow: 0 10px 40px rgba(0,0,0,0.3); border: 1px solid var(--border-color);}
+        
+        .app-container { display: flex; height: 100vh; width: 100%; display: none; }
+        .sidebar { width: 280px; background: var(--bg-surface); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); z-index: 10;}
+        .logo-box { padding: 20px; text-align: center; border-bottom: 1px solid var(--border-color); }
+        .logo-box img { max-width: 75%; border-radius: 4px; background: white; padding: 5px;}
+        
+        .nav-item { padding: 15px 20px; cursor: pointer; color: var(--text-muted); font-weight: 500; border-left: 4px solid transparent; transition: 0.2s; position: relative; text-decoration: none; display: block;}
+        .nav-item:hover { background: var(--bg-hover); color: var(--text-main); }
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); border-left-color: var(--n1-color); color: var(--n1-color); font-weight: bold;}
+        .nav-external { color: #10b981 !important; border-top: 1px solid var(--border-color); margin-top: 10px; background: rgba(16, 185, 129, 0.05); }
+        .nav-external:hover { background: rgba(16, 185, 129, 0.15) !important; }
+        
+        .main-content { flex: 1; overflow-y: auto; padding: 30px; background-color: var(--bg-base); scroll-behavior: smooth;}
+        .section { display: none; animation: fadeIn 0.4s; }
+        .section.active { display: block; }
+        
+        .badge-notify { position: absolute; top: 12px; right: 20px; background: var(--accent); color: white; font-size: 0.7rem; padding: 3px 6px; border-radius: 10px; font-weight: bold; }
+        
+        .card { background-color: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); }
+        .card-header { background-color: rgba(0,0,0,0.05); border-bottom: 1px solid var(--border-color); }
+        input.form-control, select.form-select, textarea.form-control { background-color: var(--bg-base); border-color: var(--border-color); color: var(--text-main); }
+        input.form-control:focus, select.form-select:focus, textarea.form-control:focus { background-color: var(--bg-surface); border-color: var(--n1-color); box-shadow: none; color: var(--text-main);}
+        
+        .table-matriz { width: 100%; font-size: 0.85rem; border-collapse: separate; border-spacing: 0; background: var(--bg-surface); }
+        .table-matriz th { background: var(--bg-hover); color: var(--text-main); text-align: center; padding: 12px; position: sticky; top: 0; z-index: 5; border: 1px solid var(--border-color);}
+        .table-matriz td { padding: 10px; border: 1px solid var(--border-color); vertical-align: middle; color: var(--text-main); }
+        
+        .row-n1 { background-color: rgba(59, 130, 246, 0.1); }
+        .row-n2 { background-color: rgba(245, 158, 11, 0.05); }
+        .row-n3 { background-color: rgba(16, 185, 129, 0.05); }
+        .badge-n1 { background-color: var(--n1-color); color: white; }
+        .badge-n2 { background-color: var(--n2-color); color: black; }
+        .badge-n3 { background-color: var(--n3-color); color: white; }
+        .area-tag { display: inline-block; background: var(--bg-hover); border: 1px solid var(--border-color); font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; margin: 2px; color: var(--text-main); }
+        
+        .roadmap-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; min-height: 70vh; align-items: flex-start; cursor: grab; user-select: none; scroll-behavior: auto; }
+        .roadmap-column { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; min-width: 340px; width: 340px; display: flex; flex-direction: column; }
+        .roadmap-header { padding: 15px; border-bottom: 2px solid var(--border-color); font-weight: bold; position: sticky; top: 0; background: var(--bg-surface); border-radius: 8px 8px 0 0; display: flex; justify-content: space-between;}
+        .roadmap-body { padding: 15px; display: grid; gap: 15px; }
+        .roadmap-tier { display: flex; flex-direction: column; gap: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 15px; }
+        .tier-label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; font-weight: bold; }
+        .roadmap-card { background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; border-left: 4px solid; color: var(--text-main); }
+        .roadmap-card.r-n1 { border-left-color: var(--n1-color); }
+        .roadmap-card.r-n2 { border-left-color: var(--n2-color); }
+        .roadmap-card.r-n3 { border-left-color: var(--n3-color); }
+
+        .ai-panel { background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(15,23,42,0) 100%); border-left: 4px solid var(--n1-color); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* OPTIMIZACIÓN: MODO IMPRESIÓN (Reportes en PDF limpios) */
+        @media print {
+            .sidebar, .nav-item, #login-overlay, .no-print, button, .alert { display: none !important; }
+            .app-container { height: auto; }
+            .main-content { padding: 0; background: white !important; color: black !important; overflow: visible; }
+            .table-matriz { background: white !important; }
+            .table-matriz th, .table-matriz td { border: 1px solid #ccc !important; color: black !important; }
+            .row-n1, .row-n2, .row-n3 { background: transparent !important; }
+            .badge { border: 1px solid #000; color: #000 !important; background: transparent !important; }
+            canvas { max-width: 100%; page-break-inside: avoid; }
+            .card { border: 1px solid #ccc; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <img src="logo.jpg" alt="Logo" onerror="this.style.display='none'" style="max-width: 140px; margin-bottom: 20px;">
+            <h4 class="mb-4 text-primary">Plataforma SAO</h4>
+            
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-dark text-white border-secondary"><i class="fas fa-lock"></i></span>
+                <input type="password" id="input-pin" class="form-control bg-dark text-white border-secondary text-center fs-4" placeholder="PIN DE ACCESO" maxlength="6" onkeypress="if(event.key === 'Enter') window.validarPin()">
+            </div>
+            <button class="btn btn-primary w-100 py-2 fw-bold" id="btn-login" onclick="window.validarPin()">INGRESAR</button>
+
+            <div id="login-error" class="text-danger small mt-3 d-none fw-bold">
+                <i class="fas fa-exclamation-triangle"></i> PIN incorrecto o no registrado.
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-main">
+        <div class="sidebar">
+            <div class="logo-box">
+                <img src="logo.jpg" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div style="display:none; font-weight:bold; color:var(--n1-color); font-size: 1.2rem;">SISTEMA SAO</div>
+            </div>
+            <div class="p-3 text-center border-bottom" style="font-size:0.85rem; border-color: var(--border-color);">
+                <i class="fas fa-user-circle text-muted"></i> Rol: <strong id="lbl-rol" class="text-warning text-uppercase"></strong>
+            </div>
+            
+            <div class="mt-2">
+                <div class="nav-item" onclick="window.navTab('sec-identidad', this)"><i class="fas fa-university fa-fw"></i> 1. Identidad y FODA</div>
+                <div class="nav-item active" onclick="window.navTab('sec-matriz', this)"><i class="fas fa-sitemap fa-fw"></i> 2. Matriz DO-SAO</div>
+                <div class="nav-item" onclick="window.navTab('sec-mapa', this)"><i class="fas fa-project-diagram fa-fw"></i> 3. Mapa Estratégico</div>
+                <div class="nav-item" onclick="window.navTab('sec-timeline', this)"><i class="fas fa-stream fa-fw"></i> 4. Línea de Tiempo</div>
+                <div class="nav-item" onclick="window.navTab('sec-graficos', this)"><i class="fas fa-chart-pie fa-fw"></i> 5. Tablero TdB</div>
+                <div class="nav-item" onclick="window.navTab('sec-pdca', this)" id="menu-pdca">
+                    <i class="fas fa-bell fa-fw"></i> 6. Alertas & PDCA
+                    <span class="badge-notify" id="notif-badge" style="display:none;">0</span>
+                </div>
+                
+                <a href="https://tareas-fumiscor.netlify.app/" target="_blank" class="nav-item nav-external">
+                    <i class="fas fa-external-link-alt fa-fw"></i> Gestión de Tareas
+                </a>
+
+                <div class="nav-item config-btn" style="display:none;" onclick="window.navTab('sec-config', this)"><i class="fas fa-cog fa-fw"></i> 7. Configuración</div>
+            </div>
+            
+            <div class="mt-auto p-3 d-flex flex-column gap-2">
+                <button class="btn btn-outline-info w-100 btn-sm" onclick="window.toggleTheme()"><i class="fas fa-adjust"></i> Modo Día / Noche</button>
+                <button class="btn btn-outline-secondary w-100 btn-sm" onclick="window.cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="sec-identidad" class="section">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2">
+                    <h2 class="h4"><i class="fas fa-university text-primary"></i> Identidad y Matriz FODA</h2>
+                    <div class="no-print">
+                        <button class="btn btn-outline-info me-2" onclick="window.print()"><i class="fas fa-print"></i> Imprimir Reporte</button>
+                        <button class="btn btn-primary btn-save-identity d-none" onclick="window.guardarTextos()"><i class="fas fa-save"></i> Guardar Cambios</button>
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6"><label class="fw-bold text-primary mb-1">Misión</label><textarea id="val-mision" class="form-control" rows="3"></textarea></div>
+                    <div class="col-md-6"><label class="fw-bold text-primary mb-1">Visión 2026</label><textarea id="val-vision" class="form-control" rows="3"></textarea></div>
+                </div>
+                <h5 class="border-bottom border-secondary pb-2 mt-4"><i class="fas fa-border-all text-muted"></i> Análisis FODA</h5>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6"><label class="text-success fw-bold mb-1"><i class="fas fa-arrow-up"></i> Fortalezas (Int)</label><textarea id="val-fortalezas" class="form-control" rows="3"></textarea></div>
+                    <div class="col-md-6"><label class="text-danger fw-bold mb-1"><i class="fas fa-arrow-down"></i> Debilidades (Int)</label><textarea id="val-debilidades" class="form-control" rows="3"></textarea></div>
+                    <div class="col-md-6"><label class="text-info fw-bold mb-1"><i class="fas fa-external-link-alt"></i> Oportunidades (Ext)</label><textarea id="val-oportunidades" class="form-control" rows="3"></textarea></div>
+                    <div class="col-md-6"><label class="text-warning fw-bold mb-1"><i class="fas fa-exclamation-triangle"></i> Amenazas (Ext)</label><textarea id="val-amenazas" class="form-control" rows="3"></textarea></div>
+                </div>
+            </div>
+
+            <div id="sec-matriz" class="section active">
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary pb-2">
+                    <h2 class="h4"><i class="fas fa-sitemap text-primary"></i> Matriz Despliegue de Objetivos</h2>
+                    <div class="d-flex gap-2 no-print">
+                        <button class="btn btn-outline-success" onclick="window.exportarCSV()"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
+                        <button class="btn btn-outline-info" onclick="window.print()"><i class="fas fa-file-pdf"></i> Guardar PDF</button>
+                        <button class="btn btn-primary btn-add-n1" style="display:none;" onclick="window.crearN1()"><i class="fas fa-plus"></i> Nuevo N1</button>
+                    </div>
+                </div>
+
+                <div class="row mb-3 p-3 rounded border border-secondary bg-surface no-print">
+                    <div class="col-md-3 mb-2 mb-md-0">
+                        <label class="small fw-bold text-muted"><i class="fas fa-search"></i> Búsqueda Libre:</label>
+                        <input type="text" id="flt-matriz-text" class="form-control form-control-sm" placeholder="Buscar estrategia o KPI..." onkeyup="window.renderMatriz()">
+                    </div>
+                    <div class="col-md-2 mb-2 mb-md-0">
+                        <label class="small fw-bold text-muted"><i class="fas fa-layer-group"></i> Nivel:</label>
+                        <select id="flt-matriz-nivel" class="form-select form-select-sm" onchange="window.renderMatriz()">
+                            <option value="3">Hasta N3 (Todos)</option>
+                            <option value="1">Hasta N1</option>
+                            <option value="2">Hasta N2</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-2 mb-md-0">
+                        <label class="small fw-bold text-muted"><i class="fas fa-building"></i> Área:</label>
+                        <select id="flt-matriz-area" class="form-select form-select-sm" onchange="window.renderMatriz()"><option value="ALL">Todas</option></select>
+                    </div>
+                    <div class="col-md-2 mb-2 mb-md-0">
+                        <label class="small fw-bold text-muted"><i class="fas fa-traffic-light"></i> Status YTD:</label>
+                        <select id="flt-matriz-status" class="form-select form-select-sm" onchange="window.renderMatriz()">
+                            <option value="ALL">Todos</option>
+                            <option value="OK">Cumple Meta</option>
+                            <option value="ALERT">No Cumple</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button class="btn btn-sm btn-outline-secondary w-100" onclick="window.limpiarFiltrosMatriz()" title="Limpiar Filtros"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive rounded border border-secondary" style="max-height: 65vh;">
+                    <table class="table-matriz" id="matriz-export">
+                        <thead>
+                            <tr>
+                                <th width="6%">Niv</th>
+                                <th width="24%">Estrategia / Acción</th>
+                                <th width="12%">Horizonte</th>
+                                <th width="12%">Responsable</th>
+                                <th width="14%">Áreas / KPI</th>
+                                <th width="8%">Target</th>
+                                <th width="6%">YTD</th>
+                                <th width="18%" class="no-print">Gestión</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matriz-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="sec-mapa" class="section">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-4">
+                    <h2 class="h4"><i class="fas fa-project-diagram text-primary"></i> Mapa Estratégico</h2>
+                    <button class="btn btn-outline-info no-print" onclick="window.print()"><i class="fas fa-print"></i></button>
+                </div>
+                <div id="mapa-container"></div>
+            </div>
+
+            <div id="sec-timeline" class="section">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-4">
+                    <h2 class="h4"><i class="fas fa-stream text-primary"></i> Roadmap</h2>
+                    <button class="btn btn-outline-info no-print" onclick="window.print()"><i class="fas fa-print"></i></button>
+                </div>
+                <div id="roadmap-container" class="roadmap-container"></div>
+            </div>
+
+            <div id="sec-graficos" class="section">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2">
+                    <h2 class="h4"><i class="fas fa-chart-pie text-primary"></i> Tablero Ejecutivo</h2>
+                    <div class="no-print">
+                        <button class="btn btn-outline-info me-2" onclick="window.print()"><i class="fas fa-print"></i> Imprimir Tablero</button>
+                        <button class="btn btn-outline-primary" onclick="window.analisisIA()"><i class="fas fa-robot"></i> Analista IA</button>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-5"><div class="card h-100 p-3"><canvas id="radar-n1"></canvas></div></div>
+                    <div class="col-md-7">
+                        <div class="card h-100 ai-panel p-4">
+                            <h5 class="text-primary"><i class="fas fa-robot"></i> Asistente de Rigor SAO</h5>
+                            <div id="ai-summary" class="text-muted small">Haz clic en "Analista IA" para evaluar los planes de acción vencidos.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4 mt-1" id="dashboard-container"></div>
+            </div>
+
+            <div id="sec-pdca" class="section">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-4">
+                    <h2 class="h4"><i class="fas fa-bell text-warning"></i> Alertas y Gestión PDCA</h2>
+                    <button class="btn btn-outline-info no-print" onclick="window.print()"><i class="fas fa-print"></i></button>
+                </div>
+                <div id="alert-banner" class="alert alert-danger d-none fw-bold"><i class="fas fa-exclamation-triangle"></i> Tienes planes de acción vencidos.</div>
+                <div id="pdca-container" class="row g-3"></div>
+            </div>
+
+            <div id="sec-config" class="section">
+                <h2 class="h4 border-bottom border-secondary pb-2 mb-4"><i class="fas fa-cog text-primary"></i> Configuración del Sistema</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card p-3 mb-3">
+                            <h6 class="text-warning"><i class="fas fa-magic"></i> Entorno de Pruebas</h6>
+                            <p class="small text-muted mb-2">Inyecta datos de demostración para probar todas las funciones (Gráficos, KPIs, Timeline).</p>
+                            <button class="btn btn-warning w-100 fw-bold" onclick="window.cargarDatosDemo()"><i class="fas fa-database"></i> Cargar Datos Demo a Firebase</button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3">
+                            <h6 class="text-info"><i class="fas fa-building"></i> Áreas Transversales</h6>
+                            <div class="input-group mb-3"><input type="text" id="nueva-area" class="form-control" placeholder="Nueva área..."><button class="btn btn-primary" onclick="window.agregarArea()">+ Agregar</button></div>
+                            <div id="lista-areas" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDatos" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-surface border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-success"><i class="fas fa-calendar-alt"></i> Carga de Datos Mensuales</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background: var(--bg-base); border: 1px solid var(--border-color);">
+                        <div><strong id="modal-kpi-name" class="text-primary fs-5">KPI</strong> <br><small class="text-muted">Target: <span id="modal-kpi-target" class="text-main fw-bold"></span></small></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="fw-bold text-muted">Año:</label>
+                            <select id="modal-year-select" class="form-select form-select-sm w-auto" onchange="window.cargarGrillaMeses()"></select>
+                        </div>
+                    </div>
+                    <div class="row" id="modal-grid-meses"></div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-success" onclick="window.guardarDatosMeses()"><i class="fas fa-save"></i> Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiuEOcZgx48FPFi5IaYialauDxgeYK9Yk",
+            authDomain: "matriz-sao-fumiscor.firebaseapp.com",
+            projectId: "matriz-sao-fumiscor",
+            storageBucket: "matriz-sao-fumiscor.firebasestorage.app",
+            messagingSenderId: "376364627038",
+            appId: "1:376364627038:web:61afb38e0bc11f4f7cf0cf",
+            measurementId: "G-8Z601H3BJE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let rolActual = '';
+        let areaActual = 'ALL';
+        let appData = { config: { areas: [] }, identidad: {}, despliegue: [] };
+        
+        const MESES_KEY = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        const MESES_NOM = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        let charts = [];
+        let radarChartInstance = null;
+        let modalIndices = { i1: null, i2: null, i3: null };
+
+        // OPTIMIZACIÓN: Toasts (Notificaciones que no interrumpen)
+        const Toast = Swal.mixin({
+            toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true,
+            background: 'var(--bg-surface)', color: 'var(--text-main)'
+        });
+
+        // Toggle Theme
+        window.toggleTheme = function() {
+            const html = document.documentElement;
+            if(html.getAttribute('data-bs-theme') === 'dark') {
+                html.setAttribute('data-bs-theme', 'light');
+                document.getElementById('swal-theme').href = "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-default@4/default.css";
+            } else {
+                html.setAttribute('data-bs-theme', 'dark');
+                document.getElementById('swal-theme').href = "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css";
+            }
+            if(document.getElementById('sec-graficos').classList.contains('active')) renderGraficos(); // Redibujar graficos para contrastes
+        }
+
+        // OPTIMIZACIÓN: Exportar a CSV/Excel
+        window.exportarCSV = function() {
+            let csvContent = "data:text/csv;charset=utf-8,Nivel,Estrategia/Accion,Horizonte,Responsable,Areas/KPI,Meta\n";
+            appData.despliegue.forEach(n1 => {
+                csvContent += `N1,"${n1.obj}","${fmtFecha(n1.horizonte)}","${n1.respo}","-","${n1.meta}"\n`;
+                n1.n2.forEach(n2 => {
+                    csvContent += `N2,"${n2.obj}","${fmtFecha(n2.horizonte)}","${n2.respo}","${n2.areas.join(' ')}","${n2.meta}"\n`;
+                    n2.n3.forEach(n3 => {
+                        csvContent += `N3,"${n3.obj}","${fmtFecha(n3.horizonte)}","${n3.respo}","${n3.kpi}","${n3.meta}"\n`;
+                    });
+                });
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "SAO_Matriz_Fumiscor.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            Toast.fire({ icon: 'success', title: 'Archivo descargado' });
+        }
+
+        function fmtFecha(f) { if(!f) return '-'; let p = f.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+
+        window.validarPin = async function() {
+            const pin = document.getElementById('input-pin').value.trim();
+            if(!pin) return;
+            const btn = document.getElementById('btn-login');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando...';
+            
+            try {
+                const docRef = doc(db, "accesos", pin);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    rolActual = data.rol;
+                    areaActual = data.area || 'ALL';
+                    iniciarApp();
+                } else {
+                    document.getElementById('login-error').classList.remove('d-none');
+                }
+            } catch (e) { alert("Error de red: " + e.message); }
+            btn.innerHTML = 'INGRESAR';
+        }
+
+        function iniciarApp() {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('app-main').style.display = 'flex';
+            
+            const rolesDict = { 'directorio': 'N1 - Directorio', 'gerencia': `N2 - Gerencia`, 'jefatura': `N3/N4 - Op.` };
+            document.getElementById('lbl-rol').innerText = rolesDict[rolActual] + (areaActual !== 'ALL' ? ` (${areaActual})` : '');
+            
+            onSnapshot(doc(db, "sao", "masterData"), (snapshot) => {
+                if (snapshot.exists()) {
+                    appData = snapshot.data();
+                    actualizarUI();
+                } else {
+                    appData = { config: { areas: ['LOGISTICA', 'FINANZAS', 'COMPRAS', 'SISTEMAS', 'COMERCIAL', 'RRHH', 'MTTO', 'CALIDAD', 'INGENIERIA'] }, identidad: { mision: "", vision: "", fortalezas: "", debilidades: "", oportunidades: "", amenazas: "" }, despliegue: [] };
+                    window.guardarDatos();
+                }
+            });
+        }
+
+        window.guardarDatos = async function(showToast = true) {
+            await setDoc(doc(db, "sao", "masterData"), appData);
+            if(showToast) Toast.fire({ icon: 'success', title: 'Sincronizado en la nube' });
+        }
+
+        function actualizarUI() {
+            aplicarPermisosGlobales();
+            cargarTextosUI();
+            actualizarFiltrosAreas();
+            
+            const fArea = document.getElementById('flt-matriz-area');
+            if(areaActual !== 'ALL') { fArea.value = areaActual; fArea.disabled = true; }
+            
+            window.renderMatriz();
+            window.chequearAlertas();
+            
+            const activeSec = document.querySelector('.section.active').id;
+            if(activeSec === 'sec-mapa') renderMapaEstrategico();
+            if(activeSec === 'sec-timeline') renderTimeline();
+            if(activeSec === 'sec-graficos') renderGraficos();
+        }
+
+        function aplicarPermisosGlobales() {
+            const isDir = (rolActual === 'directorio');
+            document.querySelectorAll('#sec-identidad textarea').forEach(el => el.disabled = !isDir);
+            document.querySelectorAll('.btn-save-identity, .btn-add-n1').forEach(btn => btn.style.display = isDir ? 'block' : 'none');
+            document.querySelector('.config-btn').style.display = isDir ? 'block' : 'none';
+        }
+
+        function cargarTextosUI() { 
+            if(!appData.identidad) return;
+            ['mision','vision','fortalezas','debilidades','oportunidades','amenazas'].forEach(k => {
+                const el = document.getElementById('val-'+k);
+                if(el) el.value = appData.identidad[k] || '';
+            });
+        }
+        window.guardarTextos = function() { 
+            ['mision','vision','fortalezas','debilidades','oportunidades','amenazas'].forEach(k => appData.identidad[k] = document.getElementById('val-'+k).value); 
+            window.guardarDatos();
+        }
+
+        window.limpiarFiltrosMatriz = function() {
+            document.getElementById('flt-matriz-nivel').value = '3';
+            if(areaActual === 'ALL') document.getElementById('flt-matriz-area').value = 'ALL';
+            document.getElementById('flt-matriz-text').value = '';
+            document.getElementById('flt-matriz-status').value = 'ALL';
+            window.renderMatriz();
+        }
+
+        window.actualizarFiltrosAreas = function() {
+            const sel = document.getElementById('flt-matriz-area');
+            let valActual = sel.value;
+            sel.innerHTML = '<option value="ALL">Todas</option>' + (appData.config?.areas || []).map(a => `<option value="${a}">${a}</option>`).join('');
+            sel.value = (valActual && (appData.config?.areas || []).includes(valActual)) ? valActual : 'ALL';
+            
+            const list = document.getElementById('lista-areas');
+            if(list) list.innerHTML = (appData.config?.areas || []).map((a,i) => `<span class="badge bg-secondary p-2 d-flex align-items-center gap-2 fs-6">${a} <i class="fas fa-times text-danger" style="cursor:pointer;" onclick="window.eliminarArea(${i})"></i></span>`).join('');
+        }
+
+        function evaluateFilters(item, level, parentAreas = [], n3Status = null) {
+            let fAre = document.getElementById('flt-matriz-area').value;
+            let fTxt = document.getElementById('flt-matriz-text').value.toLowerCase();
+            let fSta = document.getElementById('flt-matriz-status').value;
+            
+            let matchAre = fAre === 'ALL' || (level === 2 && item.areas && item.areas.includes(fAre)) || (level === 3 && parentAreas.includes(fAre));
+            let matchTxt = fTxt === '' || item.obj.toLowerCase().includes(fTxt) || (item.kpi && item.kpi.toLowerCase().includes(fTxt));
+            let matchSta = fSta === 'ALL' || (level === 3 && n3Status === fSta);
+            
+            return matchAre && matchTxt && matchSta;
+        }
+
+        window.renderMatriz = function() {
+            const tbody = document.getElementById('matriz-body'); tbody.innerHTML = '';
+            const maxNivel = parseInt(document.getElementById('flt-matriz-nivel').value);
+            
+            if(!appData.despliegue || appData.despliegue.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center p-5 text-muted">Aún no hay estrategias.</td></tr>'; return;
+            }
+            
+            appData.despliegue.forEach((n1, i1) => {
+                let n1DirectMatch = evaluateFilters(n1, 1);
+                let n1HasChild = false;
+                let htmlN1 = '';
+                let htmlChildren = '';
+
+                let btnAddN2 = (rolActual === 'directorio') ? `<button class="btn btn-sm btn-outline-secondary" onclick="window.crearN2(${i1})">+ N2</button>` : '';
+                let btnDelN1 = (rolActual === 'directorio') ? `<button class="btn btn-sm btn-danger" onclick="window.borrar(1, ${i1})"><i class="fas fa-trash"></i></button>` : '';
+
+                htmlN1 = `<tr class="row-n1"><td class="text-center"><span class="badge badge-n1">N1</span></td><td class="fw-bold">${n1.obj}</td><td><i class="far fa-calendar-alt text-primary"></i> ${fmtFecha(n1.horizonte)}</td><td>${n1.respo}</td><td colspan="2" class="text-info small">Meta Global: <strong>${n1.meta}</strong></td><td></td><td class="no-print"><div class="d-flex gap-1">${btnAddN2} ${btnDelN1}</div></td></tr>`;
+
+                if (maxNivel >= 2) {
+                    n1.n2.forEach((n2, i2) => {
+                        let n2DirectMatch = evaluateFilters(n2, 2);
+                        let n2HasChild = false;
+                        let htmlN2 = '';
+                        let htmlN3 = '';
+
+                        let areasHtml = (n2.areas || []).map(a => `<span class="area-tag">${a}</span>`).join('');
+                        let puedeEditarN2 = rolActual === 'directorio' || (rolActual === 'gerencia' && (n2.areas||[]).includes(areaActual)) || (rolActual === 'gerencia' && areaActual === 'ALL');
+                        
+                        let btnAddN3 = puedeEditarN2 ? `<button class="btn btn-sm btn-outline-success" onclick="window.crearN3(${i1}, ${i2})">+ KPI N3</button>` : '';
+                        let btnPDCA = (puedeEditarN2 || rolActual === 'jefatura') ? `<button class="btn btn-sm btn-info text-white" onclick="window.gestionarPDCA(${i1}, ${i2})">PDCA</button>` : '';
+                        let btnDelN2 = puedeEditarN2 ? `<button class="btn btn-sm btn-danger" onclick="window.borrar(2, ${i1}, ${i2})"><i class="fas fa-trash"></i></button>` : '';
+
+                        htmlN2 = `<tr class="row-n2"><td class="text-end"><span class="badge badge-n2">N2</span></td><td class="ps-3 border-start border-warning border-4">↳ ${n2.obj}</td><td><i class="far fa-calendar-alt text-warning"></i> ${fmtFecha(n2.horizonte)}</td><td>${n2.respo}</td><td>${areasHtml||'-'}</td><td class="text-muted small">Meta Área: ${n2.meta}</td><td></td><td class="no-print"><div class="d-flex gap-1">${btnAddN3} ${btnPDCA} ${btnDelN2}</div></td></tr>`;
+
+                        if (maxNivel >= 3) {
+                            n2.n3.forEach((n3, i3) => {
+                                let pct = calcularYTDNum(n3);
+                                let cumpleMeta = false;
+                                let n3Status = 'NODATA';
+                                if (pct !== null) {
+                                    cumpleMeta = n3.polaridad === 'menor' ? (pct <= n3.meta) : (pct >= n3.meta);
+                                    n3Status = cumpleMeta ? 'OK' : 'ALERT';
+                                }
+                                
+                                if (evaluateFilters(n3, 3, n2.areas, n3Status)) {
+                                    n2HasChild = true;
+                                    n1HasChild = true;
+                                    
+                                    let YTDHtml = pct !== null ? `<span class="${cumpleMeta ? 'text-success' : 'text-danger'} fw-bold">${pct}</span>` : '-';
+                                    let puedeEditarN3 = puedeEditarN2 || (rolActual === 'jefatura' && (n2.areas||[]).includes(areaActual));
+                                    
+                                    let btnData = puedeEditarN3 ? `<button class="btn btn-sm btn-success" onclick="window.abrirModalDatos(${i1}, ${i2}, ${i3})"><i class="fas fa-calendar-alt"></i></button>` : '';
+                                    let btnDelN3 = puedeEditarN3 ? `<button class="btn btn-sm btn-danger" onclick="window.borrar(3, ${i1}, ${i2}, ${i3})"><i class="fas fa-trash"></i></button>` : '';
+
+                                    htmlN3 += `<tr class="row-n3"><td class="text-end"><span class="badge badge-n3">N3</span></td><td class="ps-5 border-start border-success border-4"><i class="fas fa-caret-right text-muted"></i> ${n3.obj}</td><td><i class="far fa-calendar-alt text-success"></i> ${fmtFecha(n3.horizonte)}</td><td>${n3.respo}</td><td class="text-info"><strong>${n3.kpi}</strong></td><td class="text-center fw-bold">${n3.meta}</td><td class="text-center fs-6">${YTDHtml}</td><td class="no-print"><div class="d-flex gap-1">${btnData} ${btnDelN3}</div></td></tr>`;
+                                }
+                            });
+                        }
+
+                        if (n2DirectMatch || n2HasChild || (maxNivel < 3 && n1DirectMatch)) {
+                            n1HasChild = true;
+                            htmlChildren += htmlN2 + htmlN3;
+                        }
+                    });
+                }
+
+                if (n1DirectMatch || n1HasChild) {
+                    tbody.innerHTML += htmlN1 + htmlChildren;
+                }
+            });
+        }
+
+        window.crearN1 = async function() {
+            const { value: f } = await Swal.fire({ title: 'Crear N1', html: '<input id="s-obj" class="swal2-input" placeholder="Objetivo"><input id="s-res" class="swal2-input" placeholder="Responsable"><input id="s-met" class="swal2-input" placeholder="Meta Gral"><label class="d-block text-start ms-4 mt-2 mb-0 small">Horizonte:</label><input type="date" id="s-dat" class="swal2-input mt-0">', preConfirm: () => ({ obj: document.getElementById('s-obj').value, respo: document.getElementById('s-res').value, meta: document.getElementById('s-met').value, horizonte: document.getElementById('s-dat').value, n2: [] }) });
+            if(f && f.obj) { appData.despliegue.push(f); window.guardarDatos(); }
+        }
+        
+        window.crearN2 = async function(i1) {
+            let chk = (appData.config?.areas || []).map(a => `<div class="form-check form-check-inline" style="width:110px;text-align:left;"><input class="form-check-input a-chk" type="checkbox" value="${a}" id="c-${a}"><label class="form-check-label small" for="c-${a}">${a}</label></div>`).join('');
+            const { value: f } = await Swal.fire({ title: 'Estrategia N2', width: '600px', html: `<input id="s-obj" class="form-control mb-2" placeholder="Estrategia"><div class="row mb-2"><div class="col"><input id="s-res" class="form-control" placeholder="Área/Piloto"></div><div class="col"><input id="s-met" class="form-control" placeholder="Meta"></div></div><div class="row mb-3"><div class="col"><label class="small text-muted d-block text-start">Horizonte:</label><input type="date" id="s-dat" class="form-control"></div></div><div class="text-start border border-secondary p-2"><label class="fw-bold mb-2 d-block small">Áreas Involucradas:</label>${chk}</div>`, preConfirm: () => ({ obj: document.getElementById('s-obj').value, respo: document.getElementById('s-res').value, meta: document.getElementById('s-met').value, horizonte: document.getElementById('s-dat').value, areas: Array.from(document.querySelectorAll('.a-chk:checked')).map(c => c.value), n3: [], pdca: [] }) });
+            if(f && f.obj) { appData.despliegue[i1].n2.push(f); window.guardarDatos(); }
+        }
+
+        window.crearN3 = async function(i1, i2) {
+            const { value: f } = await Swal.fire({ title: 'KPI N3', html: '<input id="s-obj" class="swal2-input" placeholder="Acción / Iniciativa"><input id="s-res" class="swal2-input" placeholder="Responsable"><input id="s-kpi" class="swal2-input" placeholder="Nombre KPI"><div class="row px-4 mt-2"><div class="col-6"><input id="s-met" type="number" step="0.01" class="form-control" placeholder="Meta Numérica"></div><div class="col-6"><input type="date" id="s-dat" class="form-control"></div></div><div class="row px-4 mt-3 text-start"><div class="col-6"><label class="small text-muted mb-1">Cálculo YTD:</label><select id="s-tipo" class="form-select"><option value="promedio">Promedio</option><option value="suma">Acumulado</option></select></div><div class="col-6"><label class="small text-muted mb-1">Polaridad:</label><select id="s-polaridad" class="form-select"><option value="mayor">Mayor es mejor (▲)</option><option value="menor">Menor es mejor (▼)</option></select></div></div>', preConfirm: () => ({ obj: document.getElementById('s-obj').value, respo: document.getElementById('s-res').value, kpi: document.getElementById('s-kpi').value, meta: parseFloat(document.getElementById('s-met').value), horizonte: document.getElementById('s-dat').value, tipo: document.getElementById('s-tipo').value || 'promedio', polaridad: document.getElementById('s-polaridad').value || 'mayor', datos: {} }) });
+            if(f && f.obj && !isNaN(f.meta)) { appData.despliegue[i1].n2[i2].n3.push(f); window.guardarDatos(); }
+        }
+
+        window.borrar = function(nv, i1, i2, i3) {
+            if(confirm('¿Seguro que deseas eliminar este elemento?')) { 
+                if(nv===1) appData.despliegue.splice(i1,1); 
+                else if(nv===2) appData.despliegue[i1].n2.splice(i2,1); 
+                else if(nv===3) appData.despliegue[i1].n2[i2].n3.splice(i3,1); 
+                window.guardarDatos(false); 
+            }
+        }
+
+        function calcularYTDNum(n3) {
+            if(!n3.datos) return null;
+            let vals = [];
+            Object.values(n3.datos).forEach(yObj => { Object.values(yObj).forEach(v => { if(v !== null && v !== "") vals.push(parseFloat(v)); }); });
+            if(vals.length === 0) return null;
+            let sumaTotal = vals.reduce((a, b) => a + b, 0);
+            let resultado = n3.tipo === 'suma' ? sumaTotal : (sumaTotal / vals.length);
+            return parseFloat(resultado.toFixed(2));
+        }
+
+        window.chequearAlertas = function() {
+            let vencidos = 0; let nKpis = 0; let nPdca = 0;
+            let hoy = new Date().toISOString().split('T')[0];
+            const cont = document.getElementById('pdca-container'); if(!cont) return;
+            cont.innerHTML = '';
+
+            appData.despliegue.forEach(n1 => n1.n2.forEach(n2 => {
+                nKpis += n2.n3.length; nPdca += n2.pdca ? n2.pdca.length : 0;
+                if(n2.pdca && n2.pdca.length > 0) {
+                    let lis = n2.pdca.map(p => {
+                        let isLate = (p.date && p.date < hoy && p.fase !== 'A');
+                        if(isLate) vencidos++;
+                        return `<li class="list-group-item d-flex justify-content-between align-items-center small ${isLate ? 'bg-danger text-white' : 'bg-transparent'} border-secondary"><div><strong>${p.act}</strong><br><span>${p.resp} | <i class="fas fa-calendar"></i> ${fmtFecha(p.date)}</span></div><span class="badge ${p.fase==='A' ? 'bg-success' : 'bg-dark border'}">${p.fase}</span></li>`;
+                    }).join('');
+                    cont.innerHTML += `<div class="col-md-6"><div class="card h-100 border-info"><div class="card-header bg-transparent fw-bold text-info"><i class="fas fa-tasks"></i> ${n2.obj}</div><ul class="list-group list-group-flush">${lis}</ul></div></div>`;
+                }
+            }));
+
+            document.getElementById('notif-badge').innerText = vencidos;
+            document.getElementById('notif-badge').style.display = vencidos > 0 ? 'inline' : 'none';
+            document.getElementById('alert-banner').classList.toggle('d-none', vencidos === 0);
+        }
+
+        window.gestionarPDCA = async function(i1, i2) {
+            let n2 = appData.despliegue[i1].n2[i2];
+            if(!n2.pdca) n2.pdca = [];
+            const { value: f } = await Swal.fire({ title: 'Añadir PDCA', html: '<input id="p-act" class="swal2-input" placeholder="Acción"><input id="p-res" class="swal2-input" placeholder="Resp."><input type="date" id="p-dat" class="swal2-input"><select id="p-fas" class="swal2-select"><option value="P">P - Plan</option><option value="D">D - Do</option><option value="C">C - Check</option><option value="A">A - Act</option></select>', preConfirm: () => ({ act: document.getElementById('p-act').value, resp: document.getElementById('p-res').value, date: document.getElementById('p-dat').value, fase: document.getElementById('p-fas').value }) });
+            if(f && f.act) { n2.pdca.push(f); window.guardarDatos(); }
+        }
+
+        window.abrirModalDatos = function(i1, i2, i3) {
+            modalIndices = { i1, i2, i3 }; let n3 = appData.despliegue[i1].n2[i2].n3[i3]; if(!n3.datos) n3.datos = {};
+            document.getElementById('modal-kpi-name').innerText = n3.kpi; document.getElementById('modal-kpi-target').innerText = n3.meta;
+            let sy = document.getElementById('modal-year-select'); sy.innerHTML = '';
+            for(let y=2024; y<=2030; y++) sy.innerHTML += `<option value="${y}" ${y===new Date().getFullYear()?'selected':''}>${y}</option>`;
+            window.cargarGrillaMeses(); 
+            new bootstrap.Modal(document.getElementById('modalDatos')).show();
+        }
+
+        window.cargarGrillaMeses = function() {
+            let n3 = appData.despliegue[modalIndices.i1].n2[modalIndices.i2].n3[modalIndices.i3]; let anio = document.getElementById('modal-year-select').value;
+            if(!n3.datos[anio]) n3.datos[anio] = Object.fromEntries(MESES_KEY.map(m=>[m,""]));
+            document.getElementById('modal-grid-meses').innerHTML = MESES_KEY.map(m => `<div class="col-3 mb-3"><label class="form-label text-uppercase small text-muted fw-bold">${m}</label><input type="number" step="0.01" id="mdl-${m}" class="form-control" value="${n3.datos[anio][m] !== "" ? n3.datos[anio][m] : ''}"></div>`).join('');
+        }
+
+        window.guardarDatosMeses = function() {
+            let n3 = appData.despliegue[modalIndices.i1].n2[modalIndices.i2].n3[modalIndices.i3]; let anio = document.getElementById('modal-year-select').value;
+            MESES_KEY.forEach(m => { let v = document.getElementById('mdl-'+m).value; n3.datos[anio][m] = v!=="" ? parseFloat(v) : ""; });
+            window.guardarDatos(); 
+            bootstrap.Modal.getInstance(document.getElementById('modalDatos')).hide();
+        }
+
+        window.navTab = function(id, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active'); el.classList.add('active');
+            actualizarUI();
+        }
+
+        window.cargarDatosDemo = function() {
+            appData = {
+                config: { areas: ['LOGISTICA', 'FINANZAS', 'COMPRAS', 'SISTEMAS', 'COMERCIAL', 'RRHH', 'MTTO', 'CALIDAD', 'INGENIERIA'] },
+                identidad: { 
+                    mision: "Proveer soluciones metalmecánicas de excelencia, garantizando la satisfacción de nuestros clientes con rigor y mejora continua.", 
+                    vision: "Ser líderes en la región para 2026 mediante la innovación tecnológica y el desarrollo de nuestro capital humano.", 
+                    fortalezas: "Personal altamente capacitado\nCertificaciones ISO al día", debilidades: "Tiempos de setup mejorables\nDependencia de insumos importados", 
+                    oportunidades: "Nuevos mercados de exportación\nAutomatización de líneas", amenazas: "Volatilidad cambiaria\nNuevas regulaciones ambientales" 
+                },
+                despliegue: [
+                    {
+                        obj: "Aumentar Rentabilidad Global", respo: "Directorio", meta: "15%", horizonte: "2026-12-31",
+                        n2: [{
+                            obj: "Reducir OPEX Energético", respo: "Gerencia", meta: "5%", horizonte: "2026-10-30", areas: ["FINANZAS", "MTTO"], 
+                            pdca: [{act: "Auditoría de fugas", resp: "MTTO", date: "2026-03-15", fase: "P"}, {act: "Cotizar luces LED", resp: "Compras", date: "2026-04-10", fase: "D"}],
+                            n3: [{ obj: "Reducir consumo KW", respo: "Jefe MTTO", kpi: "Consumo KW/h", meta: 100, horizonte: "2026-06-30", tipo: "promedio", polaridad: "menor", datos: { "2026": { ene: 120, feb: 115, mar: 105, abr: 98, may: 95 } } }]
+                        }]
+                    },
+                    {
+                        obj: "Calidad Cero Defectos", respo: "Directorio", meta: "0 PPM", horizonte: "2026-12-31",
+                        n2: [{
+                            obj: "Asegurar Calidad en Línea", respo: "Ingeniería", meta: "< 1% Scrap", horizonte: "2026-12-01", areas: ["CALIDAD", "INGENIERIA"], pdca: [],
+                            n3: [{ obj: "Control de Scrap", respo: "Líder", kpi: "% Scrap", meta: 0.8, horizonte: "2026-12-01", tipo: "promedio", polaridad: "menor", datos: { "2026": { ene: 1.5, feb: 1.2, mar: 1.0, abr: 0.9, may: 0.85 } } }]
+                        }]
+                    }
+                ]
+            };
+            window.guardarDatos();
+        }
+
+        function renderMapaEstrategico() {
+            const cont = document.getElementById('mapa-container'); cont.innerHTML = '';
+            appData.despliegue.forEach(n1 => {
+                let n2HTML = '';
+                n1.n2.forEach(n2 => {
+                    let n3HTML = '';
+                    n2.n3.forEach(n3 => {
+                        let pct = calcularYTDNum(n3);
+                        let colorTexto = 'text-muted';
+                        if (pct !== null) { let cumpleMeta = n3.polaridad === 'menor' ? (pct <= n3.meta) : (pct >= n3.meta); colorTexto = cumpleMeta ? 'text-success' : 'text-danger'; }
+                        n3HTML += `<div class="card p-2 border-success" style="min-width: 200px; max-width: 240px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><div class="d-flex justify-content-between align-items-center mb-1"><span class="badge bg-success" style="font-size: 0.6rem;">N3</span><span class="small fw-bold ${colorTexto}">${pct !== null ? pct : 'S/D'} / ${n3.meta}</span></div><div class="small fw-bold text-truncate" title="${n3.obj}">${n3.obj}</div><div class="text-info" style="font-size: 0.7rem;"><i class="fas fa-tachometer-alt"></i> KPI: ${n3.kpi}</div></div>`;
+                    });
+                    let n3Wrapper = n3HTML ? `<div class="ps-3 border-start border-success ms-3 mt-3 d-flex flex-wrap gap-2">${n3HTML}</div>` : '';
+                    n2HTML += `<div class="mb-3 p-3 border rounded border-secondary" style="background: rgba(245, 158, 11, 0.05);"><div class="d-flex justify-content-between align-items-start"><h6 class="text-warning mb-0"><span class="badge bg-warning text-dark me-1">N2</span> ${n2.obj}</h6><span class="badge bg-secondary" style="font-size:0.65rem;">${n2.areas.join(', ')}</span></div><div class="text-muted small mt-1"><i class="fas fa-user-tie"></i> Resp: ${n2.respo}</div>${n3Wrapper}</div>`;
+                });
+                let n2Wrapper = n2HTML ? `<div class="ps-3 border-start border-warning ms-3 mt-3">${n2HTML}</div>` : '';
+                cont.innerHTML += `<div class="mb-4 p-3 border rounded shadow-sm border-secondary card"><h5 class="text-primary mb-0"><span class="badge bg-primary me-2">N1</span>${n1.obj}</h5><div class="text-muted small mt-1"><i class="fas fa-bullseye"></i> Meta Global: ${n1.meta}</div>${n2Wrapper}</div>`;
+            });
+        }
+
+        function renderTimeline() {
+            const cont = document.getElementById('roadmap-container'); cont.innerHTML = '';
+            let flat = [];
+            appData.despliegue.forEach(n1 => {
+                if(n1.horizonte) flat.push({ n: 1, obj: n1.obj, r: n1.respo, d: n1.horizonte, a: [], p: 'Estrategia N1' });
+                n1.n2.forEach(n2 => {
+                    if(n2.horizonte) flat.push({ n: 2, obj: n2.obj, r: n2.respo, d: n2.horizonte, a: n2.areas, p: '↳ Sub. de: ' + n1.obj });
+                    n2.n3.forEach(n3 => { if(n3.horizonte) flat.push({ n: 3, obj: n3.obj, r: n3.respo, d: n3.horizonte, a: n2.areas, p: '↳ Sub. de: ' + n2.obj }); });
+                });
+            });
+            let grp = {}; flat.forEach(i => { let ym = i.d.substring(0,7); if(!grp[ym]) grp[ym] = []; grp[ym].push(i); });
+            Object.keys(grp).sort().forEach(ym => {
+                let [y, m] = ym.split('-'); let title = MESES_NOM[parseInt(m)-1] + ' ' + y;
+                let n1Cards = grp[ym].filter(i => i.n === 1).map(i => `<div class="roadmap-card r-n1"><div class="d-flex justify-content-between mb-1"><span class="badge badge-n1">N1</span><span class="small text-muted">${fmtFecha(i.d)}</span></div><h6 class="fw-bold mb-1">${i.obj}</h6><p class="small text-muted mb-0">${i.p}</p></div>`).join('');
+                let n2Cards = grp[ym].filter(i => i.n === 2).map(i => `<div class="roadmap-card r-n2"><div class="d-flex justify-content-between mb-1"><span class="badge badge-n2">N2</span><span class="small text-muted">${fmtFecha(i.d)}</span></div><h6 class="fw-bold mb-1">${i.obj}</h6><p class="small text-muted mb-0">${i.p}</p></div>`).join('');
+                let n3Cards = grp[ym].filter(i => i.n === 3).map(i => `<div class="roadmap-card r-n3"><div class="d-flex justify-content-between mb-1"><span class="badge badge-n3">N3</span><span class="small text-muted">${fmtFecha(i.d)}</span></div><h6 class="fw-bold mb-1">${i.obj}</h6><p class="small text-muted mb-0">${i.p}</p></div>`).join('');
+                cont.innerHTML += `<div class="roadmap-column"><div class="roadmap-header"><span class="text-info">${title}</span></div><div class="roadmap-body"><div class="roadmap-tier tier-n1"><div class="tier-label">Nivel 1 - Directorio</div>${n1Cards || '<div class="text-muted small fst-italic">Sin objetivos</div>'}</div><div class="roadmap-tier tier-n2"><div class="tier-label">Nivel 2 - Gerencias</div>${n2Cards || '<div class="text-muted small fst-italic">Sin estrategias</div>'}</div><div class="roadmap-tier tier-n3"><div class="tier-label">Nivel 3 - Operativo</div>${n3Cards || '<div class="text-muted small fst-italic">Sin KPIs</div>'}</div></div></div>`;
+            });
+        }
+
+        function renderGraficos() {
+            const cont = document.getElementById('dashboard-container'); cont.innerHTML = '';
+            charts.forEach(c => c.destroy()); charts = [];
+            if(radarChartInstance) { radarChartInstance.destroy(); radarChartInstance = null; }
+
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim();
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim();
+
+            let radarLabels = []; let radarData = [];
+            appData.despliegue.forEach(n1 => {
+                let kpiPcts = [];
+                n1.n2.forEach(n2 => { n2.n3.forEach(n3 => { let ytd = calcularYTDNum(n3); if(ytd !== null) { let target = parseFloat(n3.meta) || 1; let pct = (ytd / target) * 100; kpiPcts.push(pct > 100 ? 100 : pct); } }); });
+                radarLabels.push(n1.obj.substring(0, 20));
+                radarData.push(kpiPcts.length > 0 ? (kpiPcts.reduce((a,b)=>a+b,0) / kpiPcts.length).toFixed(1) : 0);
+            });
+
+            if(radarLabels.length > 0 && document.getElementById('radar-n1')) {
+                radarChartInstance = new Chart(document.getElementById('radar-n1').getContext('2d'), { type: 'radar', data: { labels: radarLabels, datasets: [{ label: '% Cumplimiento', data: radarData, backgroundColor: 'rgba(59, 130, 246, 0.2)', borderColor: '#3b82f6', pointBackgroundColor: '#ef4444', borderWidth: 2 }] }, options: { scales: { r: { angleLines: {color: gridColor}, grid:{color:gridColor}, pointLabels:{color:textColor}, ticks:{color:textColor, backdropColor:'transparent', min: 0, max: 100 } } }, responsive: true, maintainAspectRatio: false } });
+            }
+
+            appData.despliegue.forEach(n1 => n1.n2.forEach(n2 => n2.n3.forEach(n3 => {
+                if(!n3.datos) return;
+                let lbls = [], dats = [];
+                Object.keys(n3.datos).sort().forEach(y => MESES_KEY.forEach(m => { let v = n3.datos[y][m]; if(v!=="" && v!==null) { lbls.push(m.toUpperCase() + ' ' + y.slice(-2)); dats.push(v); } }));
+                if(dats.length > 0) {
+                    let id = 'c-' + Math.random().toString(36).substr(2,9);
+                    cont.innerHTML += `<div class="col-md-6"><div class="card h-100 p-3"><h6 class="text-success">${n3.kpi}</h6><div style="height:250px;"><canvas id="${id}"></canvas></div></div></div>`;
+                    setTimeout(() => { charts.push(new Chart(document.getElementById(id).getContext('2d'), { type: 'line', data: { labels: lbls, datasets: [{ label: 'Real', data: dats, borderColor: '#10b981', fill: false, tension: 0.2 }, { label: 'Meta', data: new Array(lbls.length).fill(n3.meta), borderColor: '#ef4444', borderDash: [5,5] }] }, options: { scales:{ x:{ticks:{color:textColor}, grid:{color:gridColor}}, y:{ticks:{color:textColor}, grid:{color:gridColor}} }, responsive: true, maintainAspectRatio: false, plugins:{legend:{labels:{color:textColor}}} } })); }, 100);
+                }
+            })));
+        }
+
+        window.analisisIA = function() {
+            document.getElementById('ai-summary').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando Rigor SAO...';
+            setTimeout(() => {
+                document.getElementById('ai-summary').innerHTML = `<b>Recomendación IA:</b> Se detectaron ${document.getElementById('notif-badge').innerText} alertas vencidas. Se sugiere convocar una reunión QRQC urgente para revisar los PDCA en estado rojo.`;
+                document.getElementById('ai-summary').classList.add('text-main');
+            }, 1500);
+        }
+
+        window.cerrarSesion = function() { window.location.reload(); }
+        window.agregarArea = function() { let v = document.getElementById('nueva-area').value.toUpperCase(); if(v){appData.config.areas.push(v); window.guardarDatos();} }
+        window.eliminarArea = function(i) { appData.config.areas.splice(i,1); window.guardarDatos(); }
+
+    </script>
+</body>
+</html>
